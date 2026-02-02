@@ -1,0 +1,283 @@
+// Salséalo Manager - Database Schema
+// Sistema de Gestión Gastronómica de Alto Rendimiento
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// PROVEEDORES E INGREDIENTES
+// ==========================================
+
+model Supplier {
+  id          String       @id @default(cuid())
+  name        String
+  phone       String?
+  email       String?
+  address     String?
+  notes       String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  ingredients Ingredient[]
+
+  @@map("suppliers")
+}
+
+model Ingredient {
+  id              String             @id @default(cuid())
+  name            String
+  unit            String             // kg, lb, lt, unidad, etc.
+  currentStock    Decimal            @default(0) @db.Decimal(10, 3)
+  minStock        Decimal            @default(0) @db.Decimal(10, 3)
+  avgCost         Decimal            @default(0) @db.Decimal(10, 2)
+  category        String?
+  isActive        Boolean            @default(true)
+  supplierId      String?
+  supplier        Supplier?          @relation(fields: [supplierId], references: [id])
+  priceHistory    PriceHistory[]
+  recipeItems     RecipeIngredient[]
+  stockMovements  StockMovement[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@map("ingredients")
+}
+
+model PriceHistory {
+  id           String     @id @default(cuid())
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  price        Decimal    @db.Decimal(10, 2)
+  quantity     Decimal    @db.Decimal(10, 3)
+  supplierId   String?
+  invoiceRef   String?
+  notes        String?
+  recordedAt   DateTime   @default(now())
+
+  @@map("price_history")
+}
+
+model StockMovement {
+  id           String     @id @default(cuid())
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  type         String     // IN (compra), OUT (producción), ADJUST (ajuste manual)
+  quantity     Decimal    @db.Decimal(10, 3)
+  reason       String?
+  referenceId  String?    // ID del lote de producción o compra
+  createdAt    DateTime   @default(now())
+
+  @@map("stock_movements")
+}
+
+// ==========================================
+// RECETAS Y PRODUCTOS
+// ==========================================
+
+model Recipe {
+  id               String             @id @default(cuid())
+  name             String
+  description      String?
+  yield            Decimal            @db.Decimal(10, 2) // Cantidad que produce
+  yieldUnit        String             // unidades, porciones, kg, etc.
+  targetMargin     Decimal            @default(40) @db.Decimal(5, 2) // % margen objetivo
+  calculatedCost   Decimal            @default(0) @db.Decimal(10, 2)
+  suggestedPrice   Decimal            @default(0) @db.Decimal(10, 2)
+  isActive         Boolean            @default(true)
+  category         String?
+  prepTime         Int?               // minutos
+  instructions     String?
+  ingredients      RecipeIngredient[]
+  products         Product[]
+  productionBatches ProductionBatch[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@map("recipes")
+}
+
+model RecipeIngredient {
+  id           String     @id @default(cuid())
+  recipeId     String
+  recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  quantity     Decimal    @db.Decimal(10, 3)
+  unit         String     // Puede diferir de la unidad del ingrediente
+  notes        String?
+
+  @@unique([recipeId, ingredientId])
+  @@map("recipe_ingredients")
+}
+
+model Product {
+  id           String      @id @default(cuid())
+  name         String
+  description  String?
+  sku          String?     // Stock Keeping Unit - código único del producto
+  price        Decimal     @db.Decimal(10, 2)
+  currentStock Decimal     @default(0) @db.Decimal(10, 2)
+  minStock     Decimal     @default(0) @db.Decimal(10, 2)
+  recipeId     String?
+  recipe       Recipe?     @relation(fields: [recipeId], references: [id])
+  category     String?
+  isActive     Boolean     @default(true)
+  saleItems    SaleItem[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("products")
+}
+
+// ==========================================
+// PRODUCCIÓN (KITCHEN MODE)
+// ==========================================
+
+model ProductionBatch {
+  id           String   @id @default(cuid())
+  recipeId     String
+  recipe       Recipe   @relation(fields: [recipeId], references: [id])
+  quantity     Decimal  @db.Decimal(10, 2) // Cantidad producida
+  status       String   @default("COMPLETED") // COMPLETED, CANCELLED
+  notes        String?
+  producedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  @@map("production_batches")
+}
+
+model ProductionMacro {
+  id          String   @id @default(cuid())
+  name        String   // "Lote 12 Lasañas", "Batch Galletas AM"
+  recipeId    String
+  quantity    Decimal  @db.Decimal(10, 2)
+  icon        String?  // Emoji o icono
+  color       String?  // Color del botón
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("production_macros")
+}
+
+// ==========================================
+// PACKAGING / EMPAQUE
+// ==========================================
+
+model Packaging {
+  id           String   @id @default(cuid())
+  name         String
+  currentStock Decimal  @default(0) @db.Decimal(10, 2)
+  minStock     Decimal  @default(0) @db.Decimal(10, 2)
+  unitCost     Decimal  @default(0) @db.Decimal(10, 2)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("packaging")
+}
+
+// ==========================================
+// VENTAS Y CAJA
+// ==========================================
+
+model CashRegister {
+  id              String   @id @default(cuid())
+  openedAt        DateTime @default(now())
+  closedAt        DateTime?
+  openingBalance  Decimal  @db.Decimal(10, 2)
+  closingBalance  Decimal? @db.Decimal(10, 2)
+  expectedBalance Decimal? @db.Decimal(10, 2)
+  difference      Decimal? @db.Decimal(10, 2)
+  notes           String?
+  status          String   @default("OPEN") // OPEN, CLOSED
+  sales           Sale[]
+
+  @@map("cash_registers")
+}
+
+model Sale {
+  id             String        @id @default(cuid())
+  registerId     String?
+  register       CashRegister? @relation(fields: [registerId], references: [id])
+  subtotal       Decimal       @db.Decimal(10, 2)
+  discount       Decimal       @default(0) @db.Decimal(10, 2)
+  total          Decimal       @db.Decimal(10, 2)
+  paymentMethod  String        // EFECTIVO, TARJETA, TRANSFERENCIA
+  customerName   String?
+  notes          String?
+  status         String        @default("COMPLETED") // COMPLETED, CANCELLED, PENDING
+  items          SaleItem[]
+  createdAt      DateTime      @default(now())
+
+  @@map("sales")
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  saleId    String
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Decimal @db.Decimal(10, 2)
+  unitPrice Decimal @db.Decimal(10, 2)
+  subtotal  Decimal @db.Decimal(10, 2)
+
+  @@map("sale_items")
+}
+
+// ==========================================
+// ÓRDENES DE COMPRA
+// ==========================================
+
+model PurchaseOrder {
+  id          String              @id @default(cuid())
+  supplierId  String?
+  status      String              @default("DRAFT") // DRAFT, SENT, RECEIVED, CANCELLED
+  totalAmount Decimal?            @db.Decimal(10, 2)
+  notes       String?
+  sentAt      DateTime?
+  receivedAt  DateTime?
+  items       PurchaseOrderItem[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  ingredientId    String
+  quantity        Decimal       @db.Decimal(10, 3)
+  estimatedCost   Decimal?      @db.Decimal(10, 2)
+  actualCost      Decimal?      @db.Decimal(10, 2)
+  received        Boolean       @default(false)
+
+  @@map("purchase_order_items")
+}
+
+// ==========================================
+// USUARIOS Y ROLES
+// ==========================================
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("STAFF") // ADMIN, OWNER, STAFF
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}

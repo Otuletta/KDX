@@ -1,0 +1,156 @@
+/* POS Custom Redesign - RADICAL LAYOUT */
+
+/* Product cards con forma asimétrica */
+.product-card-unique {
+    clip-path: polygon(0 8%, 100% 0%, 100% 92%, 0% 100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card-unique:hover {
+    clip-path: polygon(0 4%, 100% 0%, 100% 96%, 0% 100%);
+    transform: translateY(-4px) rotate(0.5deg);
+}
+
+/* MASONRY GRID - Not perfect grid */
+.pos-masonry-grid {
+    column-count: 3;
+    column-gap: 1rem;
+}
+
+@media (min-width: 1536px) {
+    .pos-masonry-grid {
+        column-count: 4;
+    }
+}
+
+@media (max-width: 1024px) {
+    .pos-masonry-grid {
+        column-count: 2;
+    }
+}
+
+.pos-masonry-item {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+}
+
+/* Stagger animations */
+.stagger-item {
+    animation: fadeInUp 0.5s ease-out backwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Floating cart button - BOTTOM RIGHT */
+.cart-float-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 999;
+    animation: float 3s ease-in-out infinite;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Cart overlay - RIGHT DRAWER */
+.cart-overlay {
+    position: fixed;
+    top: 0;
+    right: -500px;
+    width: 480px;
+    max-width: 90vw;
+    height: 100vh;
+    transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 1000;
+}
+
+.cart-overlay.open {
+    right: 0;
+}
+
+/* Cart backdrop */
+.cart-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 998;
+}
+
+.cart-backdrop.open {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Animated pill categories */
+.category-pill {
+    transition: all 0.3s ease;
+}
+
+.category-pill.active {
+    animation: pillPulse 0.5s ease-out;
+}
+
+@keyframes pillPulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Product card special heights for masonry */
+.product-card-tall {
+    min-height: 240px;
+}
+
+.product-card-medium {
+    min-height: 200px;
+}
+
+.product-card-short {
+    min-height: 180px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 1024px) {
+    .cart-float-btn {
+        bottom: 1rem;
+        right: 1rem;
+    }
+
+    .cart-overlay {
+        width: 100vw;
+        right: -100vw;
+    }
+}

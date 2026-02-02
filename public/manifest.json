@@ -1,0 +1,65 @@
+{
+    "name": "Salséalo Manager",
+    "short_name": "Salséalo",
+    "description": "Sistema de gestión gastronómica de alto rendimiento",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1a1a2e",
+    "theme_color": "#e85d04",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "business",
+        "productivity",
+        "food"
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "Inventario",
+            "short_name": "Inventario",
+            "url": "/inventario",
+            "icons": [
+                {
+                    "src": "/icons/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Cocina",
+            "short_name": "Cocina",
+            "url": "/cocina",
+            "icons": [
+                {
+                    "src": "/icons/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Caja",
+            "short_name": "Caja",
+            "url": "/caja",
+            "icons": [
+                {
+                    "src": "/icons/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ]
+}
