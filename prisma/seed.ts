@@ -105,7 +105,7 @@ async function main() {
         { name: 'Pimienta Negra', unit: 'kg', avgCost: 12.00, supplierId: supItalia.id, category: 'Especias' },
     ];
 
-    const ingredients = [];
+    const ingredients: any[] = [];
     for (const ing of ingredientsData) {
         const created = await prisma.ingredient.create({
             data: {
