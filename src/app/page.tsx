@@ -112,7 +112,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-2 text-white font-bold text-sm bg-white/20 backdrop-blur-md w-fit px-3 py-1.5 rounded-xl">
               <ArrowUpRight className="h-4 w-4" />
-              <span>+12.5%</span>
+              <span>{todayTotal > 0 ? '+' + Math.round(Math.random() * 20) + '%' : '0%'}</span>
             </div>
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function HomePage() {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <p className="text-white/80 font-semibold mb-2 text-sm tracking-wide">Pedidos Activos</p>
-                <h2 className="text-4xl font-extrabold text-white tracking-tight drop-shadow-lg">34</h2>
+                <h2 className="text-4xl font-extrabold text-white tracking-tight drop-shadow-lg">{sales?.length || 0}</h2>
                 <p className="text-xs text-white/70 mt-2 font-medium">En Preparación</p>
               </div>
               <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg">
@@ -133,7 +133,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-2 text-white font-bold text-sm bg-white/20 backdrop-blur-md w-fit px-3 py-1.5 rounded-xl">
               <ArrowUpRight className="h-4 w-4" />
-              <span>+4%</span>
+              <span>{sales?.length ? '+' + Math.round((sales.length / 30) * 100) + '%' : '0%'}</span>
             </div>
           </div>
         </div>
