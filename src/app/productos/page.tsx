@@ -9,6 +9,7 @@ import {
     useDeleteProduct,
     type Product,
 } from "@/hooks/use-products";
+import { useDemo } from "@/hooks/use-demo";
 import { useRecipes } from "@/hooks/use-recipes";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
@@ -280,6 +281,7 @@ function ProductDialog({
 
 // --- Main Page ---
 export default function ProductosPage() {
+    const { isDemo } = useDemo();
     const [search, setSearch] = useState("");
     const debouncedSearch = useDebounce(search, 500); // Debounce
     const [createOpen, setCreateOpen] = useState(false);
@@ -316,7 +318,11 @@ export default function ProductosPage() {
                     <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-foreground">Menú y Productos</h1>
                     <p className="text-sm text-muted-foreground mt-1">Catálogo de venta</p>
                 </div>
-                <Button onClick={() => setCreateOpen(true)} className="w-full sm:w-auto bg-salsa hover:bg-salsa/90 text-white shadow-md shadow-salsa/20 rounded-xl">
+                <Button
+                    onClick={() => setCreateOpen(true)}
+                    disabled={isDemo}
+                    className={cn("w-full sm:w-auto bg-salsa hover:bg-salsa/90 text-white shadow-md shadow-salsa/20 rounded-xl", isDemo && "opacity-50 cursor-not-allowed")}
+                >
                     <Plus className="mr-2 h-4 w-4" /> Nuevo Producto
                 </Button>
             </div>
@@ -420,7 +426,7 @@ export default function ProductosPage() {
                                     <TableCell>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isDemo}>
                                                     <MoreHorizontal className="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>

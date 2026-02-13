@@ -109,6 +109,19 @@ export default function LoginPage() {
                                 )}
                             </Button>
                         </form>
+
+                        <form action={async () => {
+                            const { loginDemo } = await import("@/app/actions/auth");
+                            await loginDemo();
+                        }}>
+                            <Button
+                                type="submit"
+                                variant="outline"
+                                className="w-full mt-4 border-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 font-bold h-12 rounded-xl transition-all"
+                            >
+                                Ingresar como Demo
+                            </Button>
+                        </form>
                     </div>
 
                     <div className="bg-orange-50 p-4 text-center text-xs text-gray-600 border-t border-fire/20">

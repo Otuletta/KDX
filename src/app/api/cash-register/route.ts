@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getIsDemo } from "@/lib/auth";
 
 export async function GET() {
     try {
+        const isDemo = await getIsDemo();
+
         // Get open cash register
         const openRegister = await prisma.cashRegister.findFirst({
-            where: { closedAt: null },
+            where: {
+                closedAt: null,
+                isDemo: isDemo
+            },
             orderBy: { openedAt: "desc" },
         });
 
@@ -16,6 +22,7 @@ export async function GET() {
         const registers = await prisma.cashRegister.findMany({
             where: {
                 openedAt: { gte: startOfDay },
+                isDemo: isDemo
             },
             orderBy: { openedAt: "desc" },
         });
@@ -35,6 +42,13 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
+        if (await getIsDemo()) {
+            return NextResponse.json(
+                { error: "Modo Demo: Acceso de solo lectura" },
+                { status: 403 }
+            );
+        }
+
         const body = await request.json();
 
         // Validation

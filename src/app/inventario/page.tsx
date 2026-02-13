@@ -11,6 +11,7 @@ import {
     getStockStatus,
     type Ingredient,
 } from "@/hooks/use-ingredients";
+import { useDemo } from "@/hooks/use-demo";
 import { useDebounce } from "@/hooks/use-debounce";
 import { formatCurrency } from "@/lib/calculations";
 import {
@@ -220,6 +221,7 @@ function StockAdjustmentDialog({ ingredient, open, onOpenChange }: { ingredient:
 
 // --- Main Page ---
 export default function InventarioPage() {
+    const { isDemo } = useDemo();
     const [search, setSearch] = useState("");
     const debouncedSearch = useDebounce(search, 500);
     const [createOpen, setCreateOpen] = useState(false);
@@ -262,7 +264,11 @@ export default function InventarioPage() {
                         <p className="text-sm">Gestión de existencias • {stats.total} Items • {stats.critical} Críticos</p>
                     </div>
                 </div>
-                <Button onClick={() => setCreateOpen(true)} className="w-full sm:w-auto bg-salsa hover:bg-salsa/90 text-white shadow-md shadow-salsa/20 rounded-xl">
+                <Button
+                    onClick={() => setCreateOpen(true)}
+                    disabled={isDemo}
+                    className={cn("w-full sm:w-auto bg-salsa hover:bg-salsa/90 text-white shadow-md shadow-salsa/20 rounded-xl", isDemo && "opacity-50 cursor-not-allowed")}
+                >
                     <Plus className="mr-2 h-4 w-4" /> Nuevo Ingrediente
                 </Button>
             </div>
@@ -382,7 +388,7 @@ export default function InventarioPage() {
                                         <TableCell className="text-right pr-4 py-3">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isDemo}>
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>

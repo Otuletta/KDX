@@ -49,6 +49,7 @@ import {
     useOpenCashRegister,
     useCloseCashRegister
 } from "@/hooks/use-sales";
+import { useDemo } from "@/hooks/use-demo";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 
@@ -213,6 +214,7 @@ function CloseCashDialog({ open, onOpenChange, registerId, expectedCash }: { ope
 // --- Main Page Component ---
 
 export default function CajaPage() {
+    const { isDemo } = useDemo();
     const [openCashDialog, setOpenCashDialog] = useState(false);
     const [closeCashDialog, setCloseCashDialog] = useState(false);
 
@@ -360,8 +362,9 @@ export default function CajaPage() {
                     </div>
                     <Button
                         size="lg"
-                        className="gradient-fire h-14 px-10 rounded-2xl text-lg shadow-2xl shadow-salsa/30 hover:scale-105 transition-all text-white font-bold"
+                        className="gradient-fire h-14 px-10 rounded-2xl text-lg shadow-2xl shadow-salsa/30 hover:scale-105 transition-all text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={() => setOpenCashDialog(true)}
+                        disabled={isDemo}
                     >
                         <Unlock className="mr-2 h-6 w-6" /> Abrir Caja
                     </Button>
@@ -391,7 +394,7 @@ export default function CajaPage() {
                                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Efectivo</p>
                                 <p className="font-mono font-bold text-lg bg-gradient-to-r from-fresh to-fire bg-clip-text text-transparent">{formatCurrency(expectedCash)}</p>
                             </div>
-                            <Button variant="outline" size="sm" onClick={() => setCloseCashDialog(true)} className="rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive shadow-lg hover:scale-105 transition-all">
+                            <Button variant="outline" size="sm" onClick={() => setCloseCashDialog(true)} className="rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive shadow-lg hover:scale-105 transition-all" disabled={isDemo}>
                                 <Lock className="mr-2 h-4 w-4" /> Cerrar Caja
                             </Button>
                         </div>
@@ -664,9 +667,9 @@ export default function CajaPage() {
                                 </div>
 
                                 <Button
-                                    className="w-full h-14 rounded-2xl gradient-fire hover:scale-105 text-white font-bold text-lg shadow-xl shadow-fire/40 transition-all relative overflow-hidden group"
+                                    className="w-full h-14 rounded-2xl gradient-fire hover:scale-105 text-white font-bold text-lg shadow-xl shadow-fire/40 transition-all relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={handleCheckout}
-                                    disabled={cart.length === 0 || createMutation.isPending}
+                                    disabled={cart.length === 0 || createMutation.isPending || isDemo}
                                 >
                                     <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     {createMutation.isPending ? (

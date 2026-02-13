@@ -1,5 +1,7 @@
 // Salséalo Manager - Database Schema
 // Sistema de Gestión Gastronómica de Alto Rendimiento
+// Updated: Force Type Refresh
+
 
 generator client {
   provider = "prisma-client-js"
@@ -22,6 +24,7 @@ model Supplier {
   address     String?
   notes       String?
   isActive    Boolean      @default(true)
+  isDemo      Boolean      @default(false)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   ingredients Ingredient[]
@@ -38,6 +41,7 @@ model Ingredient {
   avgCost         Decimal            @default(0) @db.Decimal(10, 2)
   category        String?
   isActive        Boolean            @default(true)
+  isDemo          Boolean            @default(false)
   supplierId      String?
   supplier        Supplier?          @relation(fields: [supplierId], references: [id])
   priceHistory    PriceHistory[]
@@ -90,6 +94,7 @@ model Recipe {
   calculatedCost   Decimal            @default(0) @db.Decimal(10, 2)
   suggestedPrice   Decimal            @default(0) @db.Decimal(10, 2)
   isActive         Boolean            @default(true)
+  isDemo           Boolean            @default(false)
   category         String?
   prepTime         Int?               // minutos
   instructions     String?
@@ -128,6 +133,7 @@ model Product {
   recipe       Recipe?     @relation(fields: [recipeId], references: [id])
   category     String?
   isActive     Boolean     @default(true)
+  isDemo       Boolean     @default(false)
   saleItems    SaleItem[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -146,6 +152,7 @@ model ProductionBatch {
   quantity     Decimal  @db.Decimal(10, 2) // Cantidad producida
   status       String   @default("COMPLETED") // COMPLETED, CANCELLED
   notes        String?
+  isDemo       Boolean  @default(false)
   producedAt   DateTime @default(now())
   createdAt    DateTime @default(now())
 
@@ -161,6 +168,7 @@ model ProductionMacro {
   color       String?  // Color del botón
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
+  isDemo      Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -178,6 +186,7 @@ model Packaging {
   minStock     Decimal  @default(0) @db.Decimal(10, 2)
   unitCost     Decimal  @default(0) @db.Decimal(10, 2)
   isActive     Boolean  @default(true)
+  isDemo       Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -198,6 +207,7 @@ model CashRegister {
   difference      Decimal? @db.Decimal(10, 2)
   notes           String?
   status          String   @default("OPEN") // OPEN, CLOSED
+  isDemo          Boolean  @default(false)
   sales           Sale[]
 
   @@map("cash_registers")
@@ -214,6 +224,7 @@ model Sale {
   customerName   String?
   notes          String?
   status         String        @default("COMPLETED") // COMPLETED, CANCELLED, PENDING
+  isDemo         Boolean       @default(false)
   items          SaleItem[]
   createdAt      DateTime      @default(now())
 
@@ -243,6 +254,7 @@ model PurchaseOrder {
   status      String              @default("DRAFT") // DRAFT, SENT, RECEIVED, CANCELLED
   totalAmount Decimal?            @db.Decimal(10, 2)
   notes       String?
+  isDemo      Boolean             @default(false)
   sentAt      DateTime?
   receivedAt  DateTime?
   items       PurchaseOrderItem[]
@@ -274,7 +286,7 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role      String   @default("STAFF") // ADMIN, OWNER, STAFF
+  role      String   @default("STAFF") // ADMIN, OWNER, STAFF, DEMO
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

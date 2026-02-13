@@ -168,20 +168,42 @@ function SidebarContent({ closeSidebar }: { closeSidebar?: () => void }) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [user, setUser] = useState<any>(null);
     const pathname = usePathname();
+
+    useEffect(() => {
+        getCurrentSession().then((session) => {
+            if (session?.user) {
+                setUser(session.user);
+            }
+        });
+    }, []);
 
     // If on login page, don't render the shell layout
     if (pathname === "/login") {
         return <>{children}</>;
     }
 
+    const isDemo = user?.role === 'DEMO';
+
     return (
         <div className="flex h-dvh w-full overflow-hidden bg-background text-foreground relative">
             {/* Background Pattern - Subtle Food Theme */}
             <div className="fixed inset-0 z-0 pointer-events-none pattern-dots opacity-30"></div>
 
+            {/* Demo Banner */}
+            {isDemo && (
+                <div className="fixed top-0 left-0 right-0 z-50 bg-orange-600 text-white text-center py-1.5 px-4 text-xs font-bold shadow-lg flex items-center justify-center gap-2 animate-slide-down">
+                    <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">Modo Demo</span>
+                    <span>Estás viendo una versión de demostración. Los cambios no se guardarán.</span>
+                </div>
+            )}
+
             {/* Desktop Sidebar: Light Cream Theme */}
-            <aside className="hidden w-[280px] shrink-0 p-4 lg:block z-20 animate-slide-in-left">
+            <aside className={cn(
+                "hidden w-[280px] shrink-0 p-4 lg:block z-20 animate-slide-in-left transition-all duration-300",
+                isDemo ? "pt-12" : ""
+            )}>
                 <div className="h-full overflow-hidden rounded-[2rem] bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 shadow-2xl relative border-2 border-fire/20">
                     {/* Subtle pattern overlay */}
                     <div className="absolute inset-0 bg-gradient-to-br from-fire/5 via-transparent to-salsa/5 pointer-events-none"></div>
@@ -200,7 +222,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Sheet>
 
             {/* Main Content Area */}
-            <div className="flex flex-1 flex-col overflow-hidden relative z-10">
+            <div className={cn(
+                "flex flex-1 flex-col overflow-hidden relative z-10 transition-all duration-300",
+                isDemo ? "pt-8" : ""
+            )}>
 
                 {/* Header - Mobile Only since Search is gone */}
                 <header className="flex h-20 items-center justify-between px-6 lg:hidden pt-4">

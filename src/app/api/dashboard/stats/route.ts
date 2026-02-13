@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getIsDemo } from "@/lib/auth";
 
 export async function GET() {
     try {
+        const isDemo = await getIsDemo();
         const now = new Date();
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(now.getDate() - 7);
@@ -14,7 +16,8 @@ export async function GET() {
                 createdAt: {
                     gte: sevenDaysAgo,
                 },
-                status: 'COMPLETED'
+                status: 'COMPLETED',
+                isDemo: isDemo
             },
             select: {
                 createdAt: true,
@@ -66,7 +69,8 @@ export async function GET() {
                     createdAt: {
                         gte: sevenDaysAgo, // Best sellers of the week? Or all time? Let's do all time or month. Let's do week for consistency with chart.
                     },
-                    status: 'COMPLETED'
+                    status: 'COMPLETED',
+                    isDemo: isDemo
                 }
             }
         });

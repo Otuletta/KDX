@@ -1,8 +1,49 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getIsDemo } from "@/lib/auth";
+
+export async function GET(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const limit = parseInt(searchParams.get("limit") || "20");
+        const isDemo = await getIsDemo();
+
+        // Validate limit
+        const validLimit = isNaN(limit) || limit <= 0 ? 20 : Math.min(limit, 100);
+
+        const batches = await prisma.productionBatch.findMany({
+            where: { isDemo: isDemo },
+            take: validLimit,
+            orderBy: { producedAt: "desc" },
+            include: {
+                recipe: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        });
+
+        return NextResponse.json(batches);
+    } catch (error) {
+        console.error("Error fetching production batches:", error);
+        return NextResponse.json(
+            { error: "Error al obtener historial" },
+            { status: 500 }
+        );
+    }
+}
 
 export async function POST(request: Request) {
     try {
+        if (await getIsDemo()) {
+            return NextResponse.json(
+                { error: "Modo Demo: Acceso de solo lectura" },
+                { status: 403 }
+            );
+        }
+
         const body = await request.json();
         const { recipeId, quantity } = body;
 
@@ -144,37 +185,6 @@ export async function POST(request: Request) {
         console.error("Error executing production:", error);
         return NextResponse.json(
             { error: "Error al ejecutar producción" },
-            { status: 500 }
-        );
-    }
-}
-
-export async function GET(request: Request) {
-    try {
-        const { searchParams } = new URL(request.url);
-        const limit = parseInt(searchParams.get("limit") || "20");
-
-        // Validate limit
-        const validLimit = isNaN(limit) || limit <= 0 ? 20 : Math.min(limit, 100);
-
-        const batches = await prisma.productionBatch.findMany({
-            take: validLimit,
-            orderBy: { producedAt: "desc" },
-            include: {
-                recipe: {
-                    select: {
-                        id: true,
-                        name: true,
-                    },
-                },
-            },
-        });
-
-        return NextResponse.json(batches);
-    } catch (error) {
-        console.error("Error fetching production batches:", error);
-        return NextResponse.json(
-            { error: "Error al obtener historial" },
             { status: 500 }
         );
     }

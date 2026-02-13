@@ -11,6 +11,7 @@ import {
     type Recipe,
     type RecipeIngredient,
 } from "@/hooks/use-recipes";
+import { useDemo } from "@/hooks/use-demo";
 import { useIngredients, type Ingredient } from "@/hooks/use-ingredients";
 import { formatCurrency } from "@/lib/calculations";
 import {
@@ -73,6 +74,7 @@ function CreateRecipeDialog({
 }: {
     ingredients: Ingredient[] | undefined;
 }) {
+    const { isDemo } = useDemo();
     const [open, setOpen] = useState(false);
     const [formData, setFormData] = useState({
         name: "",
@@ -184,7 +186,7 @@ function CreateRecipeDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2" disabled={isDemo}>
                     <Plus className="h-4 w-4" />
                     Nueva Receta
                 </Button>
@@ -441,7 +443,7 @@ function CreateRecipeDialog({
                         <Button
                             type="submit"
                             disabled={
-                                createMutation.isPending || recipeIngredients.length === 0
+                                createMutation.isPending || recipeIngredients.length === 0 || isDemo
                             }
                         >
                             {createMutation.isPending && (
@@ -467,6 +469,7 @@ function EditRecipeDialog({
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }) {
+    const { isDemo } = useDemo();
     const [formData, setFormData] = useState({
         name: recipe.name,
         description: recipe.description || "",
@@ -753,7 +756,7 @@ function EditRecipeDialog({
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                        <Button type="submit" disabled={updateMutation.isPending}>
+                        <Button type="submit" disabled={updateMutation.isPending || isDemo}>
                             {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Guardar Cambios
                         </Button>
@@ -781,6 +784,7 @@ function RecipeCard({
     }, [cost, margin]);
 
     const profit = suggestedPrice - cost;
+    const { isDemo } = useDemo();
 
     return (
         <Card className="group overflow-hidden transition-all hover:border-primary/50">
@@ -800,6 +804,7 @@ function RecipeCard({
                                 variant="ghost"
                                 size="icon"
                                 className="opacity-0 group-hover:opacity-100"
+                                disabled={isDemo}
                             >
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>

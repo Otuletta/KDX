@@ -46,3 +46,8 @@ export async function updateSession(request: NextRequest) {
     });
     return res;
 }
+
+export async function getIsDemo() {
+    const session = await getSession();
+    return session?.user?.role === 'DEMO';
+}

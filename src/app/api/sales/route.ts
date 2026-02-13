@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getIsDemo } from "@/lib/auth";
 
 export async function GET(request: Request) {
     try {
@@ -7,8 +8,11 @@ export async function GET(request: Request) {
         const limit = parseInt(searchParams.get("limit") || "50");
         const registerId = searchParams.get("registerId");
         const today = searchParams.get("today") === "true";
+        const isDemo = await getIsDemo();
 
-        const where: Record<string, unknown> = {};
+        const where: Record<string, unknown> = {
+            isDemo: isDemo
+        };
 
         if (registerId) {
             where.registerId = registerId;
@@ -50,6 +54,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
+        if (await getIsDemo()) {
+            return NextResponse.json(
+                { error: "Modo Demo: Acceso de solo lectura" },
+                { status: 403 }
+            );
+        }
+
         const body = await request.json();
 
         // Validation

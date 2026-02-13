@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useRecipes, type Recipe } from "@/hooks/use-recipes";
+import { useDemo } from "@/hooks/use-demo";
 import { formatCurrency, formatDate } from "@/lib/calculations";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -107,6 +108,7 @@ function useExecuteProduction() {
 }
 
 export default function CocinaPage() {
+    const { isDemo } = useDemo();
     const { data: recipes, isLoading: loadingRecipes } = useRecipes();
     const { data: batches, isLoading: loadingBatches } = useProductionBatches();
     const executeMutation = useExecuteProduction();
@@ -259,7 +261,7 @@ export default function CocinaPage() {
                                                 <Button
                                                     size="sm"
                                                     onClick={() => executeMutation.mutate({ recipeId: recipe.id, quantity: Number(recipe.yield) })}
-                                                    disabled={executeMutation.isPending}
+                                                    disabled={executeMutation.isPending || isDemo}
                                                     className="mr-2"
                                                     variant="ghost"
                                                 >
@@ -269,7 +271,7 @@ export default function CocinaPage() {
                                                 <Button
                                                     size="sm"
                                                     onClick={() => handleProduceClick(recipe)}
-                                                    disabled={executeMutation.isPending}
+                                                    disabled={executeMutation.isPending || isDemo}
                                                 >
                                                     Producir...
                                                 </Button>
@@ -353,7 +355,7 @@ export default function CocinaPage() {
 
                     <DialogFooter>
                         <Button variant="ghost" onClick={() => setProduceDialog(null)}>Cancelar</Button>
-                        <Button onClick={confirmProduction} disabled={executeMutation.isPending}>
+                        <Button onClick={confirmProduction} disabled={executeMutation.isPending || isDemo}>
                             {executeMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Confirmar Salida
                         </Button>

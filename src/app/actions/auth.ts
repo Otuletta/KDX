@@ -59,6 +59,44 @@ export async function login(prevState: any, formData: FormData) {
     redirect("/");
 }
 
+export async function loginDemo() {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email: "demo@salsealo.com" },
+        });
+
+        if (!user) {
+            return { error: "Usuario Demo no encontrado. Por favor contacta al administrador." };
+        }
+
+        // Create session
+        const sessionData = {
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+            },
+            expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        };
+
+        const token = await encrypt(sessionData);
+
+        (await cookies()).set("session", token, {
+            expires: sessionData.expires,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        });
+
+    } catch (error) {
+        console.error("Demo Login Error:", error);
+        return { error: "Error de servidor al iniciar demo" };
+    }
+
+    redirect("/");
+}
+
 export async function logout() {
     (await cookies()).set("session", "", { expires: new Date(0) });
     redirect("/login");

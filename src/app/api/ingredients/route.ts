@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getIsDemo } from "@/lib/auth";
 
 export async function GET(request: Request) {
     try {
@@ -7,10 +8,12 @@ export async function GET(request: Request) {
         const search = searchParams.get("search") || "";
         const category = searchParams.get("category") || "";
         const status = searchParams.get("status") || "";
+        const isDemo = await getIsDemo();
 
         const ingredients = await prisma.ingredient.findMany({
             where: {
                 isActive: true,
+                isDemo: isDemo,
                 ...(search && {
                     name: {
                         contains: search,
@@ -56,6 +59,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
+        if (await getIsDemo()) {
+            return NextResponse.json(
+                { error: "Modo Demo: Acceso de solo lectura" },
+                { status: 403 }
+            );
+        }
+
         const body = await request.json();
 
         // Validation
