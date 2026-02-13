@@ -358,7 +358,7 @@ export default function CajaPage() {
                     </div>
                     <div className="text-center space-y-2">
                         <h1 className="text-4xl font-bold tracking-tighter text-foreground drop-shadow-lg">La Caja está Cerrada</h1>
-                        <p className="text-muted-foreground text-lg">Abre turno para comenzar a vender 🔥</p>
+                        <p className="text-muted-foreground text-lg">Abre turno para comenzar a vender</p>
                     </div>
                     <Button
                         size="lg"

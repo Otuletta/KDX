@@ -124,18 +124,8 @@ export default function LoginPage() {
                         </form>
                     </div>
 
-                    <div className="bg-orange-50 p-4 text-center text-xs text-gray-600 border-t border-fire/20">
-                        © 2026 Salsealo Manager v1.0 🔥
-                    </div>
                 </div>
 
-                {/* Floating Badge */}
-                <div className="mt-6 flex justify-center">
-                    <div className="bg-white px-4 py-2 rounded-full border-2 border-fire/20 text-xs text-gray-700 flex items-center gap-2 shadow-lg">
-                        <div className="h-2 w-2 rounded-full bg-fresh animate-pulse"></div>
-                        <span className="font-semibold">Sistema Activo</span>
-                    </div>
-                </div>
             </div>
         </div>
     );
