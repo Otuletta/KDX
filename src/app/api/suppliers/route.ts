@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getIsDemo } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get("search") || "";
-        const isDemo = await getIsDemo();
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const suppliers = await prisma.supplier.findMany({
             where: {
+                tenantId,
                 isActive: true,
-                isDemo: isDemo,
                 ...(search && {
                     OR: [
                         { name: { contains: search, mode: "insensitive" } },
@@ -41,12 +43,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        if (await getIsDemo()) {
-            return NextResponse.json(
-                { error: "Modo Demo: Acceso de solo lectura" },
-                { status: 403 }
-            );
-        }
 
         const body = await request.json();
 
@@ -69,8 +65,13 @@ export async function POST(request: Request) {
             }
         }
 
+        // DEFAULT TENANT FOR MIGRATION COMPLETION
+        const tenant = await prisma.tenant.findFirst({ orderBy: { createdAt: 'asc' } });
+        if (!tenant) return NextResponse.json({ error: "Tenant required" }, { status: 400 });
+
         const supplier = await prisma.supplier.create({
             data: {
+                tenantId: tenant.id,
                 name: body.name.trim(),
                 phone: body.phone?.trim() || null,
                 email: body.email?.trim() || null,

@@ -7,6 +7,13 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('Seeding users...');
 
+    let tenant = await prisma.tenant.findFirst();
+    if (!tenant) {
+        tenant = await prisma.tenant.create({
+            data: { name: 'Salsealo Default', slug: 'salsealo' }
+        });
+    }
+
     const users = [
         {
             name: 'Otule',
@@ -45,6 +52,7 @@ async function main() {
                 name: u.name,
                 password: hashedPassword,
                 role: u.role,
+                tenantId: tenant.id,
             },
         });
         console.log(`User created/updated: ${user.email} (${user.role})`);

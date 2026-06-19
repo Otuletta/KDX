@@ -1,132 +1,120 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useActionState } from "react";
 import { login } from "@/app/actions/auth";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2, AlertCircle, ChefHat, Sparkles } from "lucide-react";
-import { toast } from "sonner";
+import { Eye, EyeOff, ShieldCheck, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 
 export default function LoginPage() {
-    const [state, formAction, isPending] = useActionState(login, null);
+  const [state, formAction, pending] = useActionState(login, { error: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
-    useEffect(() => {
-        if (state?.error) {
-            toast.error(state.error);
-        }
-    }, [state]);
+  return (
+    <div className="min-h-screen flex items-center justify-center font-sans relative">
+      {/* Immersive Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/login-bg.png')" }}
+      />
+      {/* Dark overlay for contrast */}
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[8px]" />
 
-    return (
-        <div className="flex min-h-dvh flex-col items-center justify-center relative overflow-hidden">
-            {/* Animated Gradient Background - WARM LIGHT */}
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-100"></div>
-
-            {/* Floating Pattern Overlays */}
-            <div className="absolute inset-0 pattern-dots opacity-5"></div>
-
-            {/* Gradient Orbs */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-fire/10 rounded-full blur-[120px] animate-pulse"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-salsa/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
-
-            {/* Main Login Card */}
-            <div className="z-10 w-full max-w-md p-8 animate-bounce-in">
-                <div className="bg-white overflow-hidden rounded-[2rem] border-4 border-fire/20 shadow-2xl">
-                    {/* Header */}
-                    <div className="flex flex-col items-center justify-center p-10 pb-6 text-center bg-gradient-to-b from-orange-50 to-transparent">
-                        <div className="relative mb-8 animate-pulse-glow">
-                            <div className="absolute inset-0 bg-fire/20 rounded-3xl blur-3xl"></div>
-                            <div className="relative flex h-40 w-40 items-center justify-center">
-                                <Image
-                                    src="/logo-transparent.png"
-                                    alt="Salséalo Logo"
-                                    width={160}
-                                    height={160}
-                                    className="h-full w-full object-contain drop-shadow-2xl"
-                                    priority
-                                />
-                            </div>
-                        </div>
-                        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-3 drop-shadow-sm">
-                            Salséalo
-                        </h1>
-                        <div className="flex items-center gap-2 text-gray-700 text-sm font-semibold">
-                            <ChefHat className="h-4 w-4 text-fire" />
-                            <p>Sistema de Gestión Gastronómica</p>
-                        </div>
-                        <div className="mt-4 h-1 w-20 bg-gradient-to-r from-salsa via-fire to-spice rounded-full"></div>
-                    </div>
-
-                    <div className="p-8 pt-6">
-                        <form action={formAction} className="space-y-5">
-                            <div className="space-y-2">
-                                <Label htmlFor="email" className="text-gray-900 font-semibold text-sm">Email</Label>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    placeholder="tu@email.com"
-                                    required
-                                    className="bg-orange-50 border-orange-200 text-gray-900 placeholder:text-gray-400 focus:border-fire focus:ring-fire/50 h-12 rounded-xl"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="password" className="text-gray-900 font-semibold text-sm">Contraseña</Label>
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    required
-                                    className="bg-orange-50 border-orange-200 text-gray-900 placeholder:text-gray-400 focus:border-fire focus:ring-fire/50 h-12 rounded-xl"
-                                />
-                            </div>
-
-                            {state?.error && (
-                                <div className="flex items-center gap-2 rounded-xl bg-red-100 p-3 text-sm text-red-800 border-2 border-red-300 animate-fade-in">
-                                    <AlertCircle className="h-4 w-4" />
-                                    <p>{state.error}</p>
-                                </div>
-                            )}
-
-                            <Button
-                                type="submit"
-                                className="w-full gradient-fire hover:scale-105 text-white font-bold h-12 shadow-2xl shadow-salsa/30 transition-all mt-6 rounded-xl text-base relative overflow-hidden group"
-                                disabled={isPending}
-                            >
-                                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                {isPending ? (
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                        <span>Iniciando...</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2 relative z-10">
-                                        <Sparkles className="h-5 w-5" />
-                                        <span>Iniciar Sesión</span>
-                                    </div>
-                                )}
-                            </Button>
-                        </form>
-
-                        <form action={async () => {
-                            const { loginDemo } = await import("@/app/actions/auth");
-                            await loginDemo();
-                        }}>
-                            <Button
-                                type="submit"
-                                variant="outline"
-                                className="w-full mt-4 border-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 font-bold h-12 rounded-xl transition-all"
-                            >
-                                Ingresar como Demo
-                            </Button>
-                        </form>
-                    </div>
-
-                </div>
-
+      {/* Central Login Card */}
+      <div className="relative z-10 w-full max-w-[420px] px-6">
+        <div className="bg-white/95 backdrop-blur-3xl border border-white/40 p-8 sm:p-10 rounded-[24px] shadow-2xl">
+          
+          <div className="flex flex-col items-center text-center space-y-6 mb-8">
+            <Logo 
+              className="scale-125" 
+              iconClassName="w-10 h-10 text-[var(--primary)]" 
+              textClassName="hidden" 
+              showText={false} 
+            />
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                KDX
+              </h1>
+              <p className="text-sm font-medium text-slate-500 max-w-[250px] mx-auto leading-relaxed">
+                Plataforma integral para operaciones gastronómicas.
+              </p>
             </div>
+          </div>
+
+          {state?.error && (
+            <div className="mb-6 p-3.5 rounded-xl bg-red-50 text-sm font-medium text-red-600 flex items-center gap-2 border border-red-100">
+              <ShieldCheck className="w-5 h-5 shrink-0" />
+              {state.error}
+            </div>
+          )}
+
+          <form action={formAction} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700" htmlFor="email">
+                Correo Electrónico
+              </label>
+              <Input 
+                id="email" 
+                name="email" 
+                type="email" 
+                autoComplete="email" 
+                required
+                placeholder="usuario@restaurante.com"
+                className="h-11 text-sm bg-white border-slate-200 focus:border-[var(--primary)] focus:ring-[var(--primary)]/20 shadow-sm transition-all rounded-xl"
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-700" htmlFor="password">
+                  Contraseña
+                </label>
+                <a href="#" className="text-[11px] font-bold text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors uppercase tracking-wider">
+                  ¿Olvidaste?
+                </a>
+              </div>
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  name="password" 
+                  type={showPassword ? "text" : "password"} 
+                  autoComplete="current-password" 
+                  required
+                  placeholder="••••••••"
+                  className="h-11 text-sm bg-white border-slate-200 focus:border-[var(--primary)] focus:ring-[var(--primary)]/20 shadow-sm pr-10 transition-all rounded-xl"
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)} 
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            
+            <div className="pt-4">
+              <Button 
+                type="submit" 
+                disabled={pending} 
+                className="w-full h-11 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-bold text-sm shadow-md transition-all rounded-xl cursor-pointer"
+              >
+                  {pending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null} 
+                  Iniciar Sesión
+              </Button>
+            </div>
+          </form>
+
         </div>
-    );
+
+        {/* Footer outside the card */}
+        <div className="text-center mt-6">
+            <p className="text-[11px] font-semibold text-white/60 tracking-wider">
+              © 2025 KDX · Acceso Seguro
+            </p>
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -4,376 +4,165 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-
-  /* Salséalo Vibrant Theme Colors */
-  --color-salsa: var(--salsa);
-  --color-salsa-light: var(--salsa-light);
-  --color-salsa-dark: var(--salsa-dark);
-  --color-fire: var(--fire);
-  --color-fire-light: var(--fire-light);
-  --color-spice: var(--spice);
-  --color-fresh: var(--fresh);
-  --color-fresh-dark: var(--fresh-dark);
-  --color-deep: var(--deep);
-  --color-cream: var(--cream);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 :root {
-  --radius: 1rem;
+  /* ─── AURA CLASSIC POS PALETTE ─── */
+  --background: #eff3f7; /* Soft blueish gray background */
+  --foreground: #1e3a5f; /* Deep navy blue for texts */
 
-  /* 🔥 Salséalo Vibrant - Restaurant Energy Theme */
-
-  /* Base - Warm Cream Background */
-  --background: #FFF8F0;
-  --foreground: #1A1423;
-
-  /* Surfaces */
   --card: #FFFFFF;
-  --card-foreground: #1A1423;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1423;
+  --card-foreground: #1e3a5f;
 
-  /* Primary - Salsa Red 🌶️ */
-  --primary: #E63946;
-  --primary-foreground: #FFFFFF;
+  --border: #e2e8f0;
+  --input: #cbd5e1;
+  --ring: #ef4444; /* Red focus ring */
 
-  /* Secondary - Deep Purple */
-  --secondary: #2D1B2E;
-  --secondary-foreground: #FFFFFF;
-
-  /* Muted - Soft Neutrals */
-  --muted: #F5E6D3;
-  --muted-foreground: #6B5D5D;
-
-  /* Accent - Orange Fire 🔥 */
-  --accent: #F77F00;
-  --accent-foreground: #FFFFFF;
-
-  /* Destructive */
-  --destructive: #DC2626;
-  --destructive-foreground: #FFFFFF;
-
-  /* Borders & Inputs */
-  --border: #E8D5C4;
-  --input: #F5E6D3;
-  --ring: #E63946;
-
-  /* Sidebar - Gradient Background */
-  --sidebar: #1A1423;
-  --sidebar-foreground: #F5E6D3;
-  --sidebar-primary: #E63946;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: rgba(230, 57, 70, 0.1);
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: rgba(245, 230, 211, 0.1);
-  --sidebar-ring: #E63946;
-
-  /* Charts - Vibrant Palette */
-  --chart-1: #E63946;
-  /* Salsa Red */
-  --chart-2: #F77F00;
-  /* Orange */
-  --chart-3: #06D6A0;
-  /* Fresh Green */
-  --chart-4: #FCBF49;
-  /* Spicy Yellow */
-  --chart-5: #7209B7;
-  /* Purple */
-
-  /* 🎨 Brand Colors - Vibrant */
-  --salsa: #E63946;
-  --salsa-light: #FF6B77;
-  --salsa-dark: #C4303C;
-  --fire: #F77F00;
-  --fire-light: #FFB457;
-  --spice: #FCBF49;
-  --fresh: #06D6A0;
-  --fresh-dark: #05A881;
-  --deep: #1A1423;
-  --cream: #FFF8F0;
-
-  /* 🌈 Gradients */
-  --gradient-fire: linear-gradient(135deg, #E63946 0%, #F77F00 100%);
-  --gradient-sunset: linear-gradient(135deg, #F77F00 0%, #FCBF49 100%);
-  --gradient-fresh: linear-gradient(135deg, #06D6A0 0%, #00B4D8 100%);
-  --gradient-dark: linear-gradient(135deg, #1A1423 0%, #2D1B2E 100%);
-  --gradient-warm: linear-gradient(135deg, #FFF8F0 0%, #F5E6D3 100%);
-
-  /* ✨ Shadows */
-  --shadow-red: 0 10px 40px -10px rgba(230, 57, 70, 0.3);
-  --shadow-orange: 0 10px 40px -10px rgba(247, 127, 0, 0.3);
-  --shadow-green: 0 10px 40px -10px rgba(6, 214, 160, 0.3);
-  --shadow-xl: 0 20px 50px -12px rgba(0, 0, 0, 0.15);
-}
-
-.dark {
-  --background: #0F0A0F;
-  --foreground: #FFF8F0;
-  --card: #1A1423;
-  --card-foreground: #FFF8F0;
-  --popover: #1A1423;
-  --popover-foreground: #FFF8F0;
-  --muted: #2D1B2E;
-  --muted-foreground: #B8A99A;
-  --border: rgba(245, 230, 211, 0.1);
+  --primary: #ef4444; /* Punchy red */
+  --primary-hover: #dc2626;
+  
+  --success: #14b8a6; /* Teal */
+  --warning: #f59e0b; /* Yellow/Orange */
+  --danger: #ef4444; /* Red */
+  --navy: #1e3a5f;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-[#e2e8f0];
   }
-
   body {
-    @apply bg-background text-foreground antialiased selection:bg-salsa/30 selection:text-white;
-    font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    @apply bg-[var(--background)] text-[var(--foreground)] antialiased min-h-screen text-[14px];
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    font-family: var(--font-sans);
   }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: var(--font-poppins), var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  button, a {
+    @apply outline-none transition-transform active:scale-95 duration-200;
+    -webkit-tap-highlight-color: transparent;
   }
-}
-
-@layer utilities {
-
-  /* 🎬 Animations */
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-  }
-
-  .animate-fade-in-up {
-    animation: fadeInUp 0.6s ease-out forwards;
-  }
-
-  .animate-slide-in-left {
-    animation: slideInLeft 0.4s ease-out forwards;
-  }
-
-  .animate-bounce-in {
-    animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-  }
-
-  .animate-pulse-glow {
-    animation: pulseGlow 2s ease-in-out infinite;
-  }
-
-  .animate-sizzle {
-    animation: sizzle 0.3s ease-in-out infinite;
-  }
-
-  /* 🌟 Glass Effects */
-  .glass {
-    @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-xl;
-  }
-
-  .glass-card {
-    @apply bg-white/95 backdrop-blur-sm border border-border/50 shadow-lg rounded-3xl hover:shadow-2xl transition-all duration-300;
-  }
-
-  .glass-dark {
-    @apply bg-deep/80 backdrop-blur-xl border border-white/10 shadow-2xl;
-  }
-
-  /* 🎨 Gradients */
-  .gradient-fire {
-    background: var(--gradient-fire);
-  }
-
-  .gradient-sunset {
-    background: var(--gradient-sunset);
-  }
-
-  .gradient-fresh {
-    background: var(--gradient-fresh);
-  }
-
-  .gradient-dark {
-    background: var(--gradient-dark);
-  }
-
-  .gradient-warm {
-    background: var(--gradient-warm);
-  }
-
-  /* 🔥 Glow Effects */
-  .glow-red {
-    box-shadow: 0 0 20px rgba(230, 57, 70, 0.4);
-  }
-
-  .glow-orange {
-    box-shadow: 0 0 20px rgba(247, 127, 0, 0.4);
-  }
-
-  .glow-green {
-    box-shadow: 0 0 20px rgba(6, 214, 160, 0.4);
-  }
-
-  /* ✨ Active States */
-  .active-nav {
-    @apply bg-white/20 text-white font-semibold shadow-lg backdrop-blur-md;
-  }
-
-  /* 🎯 Interactive */
-  .interactive-card {
-    @apply transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98];
-  }
-
-  /* 📱 Patterns */
-  .pattern-dots {
-    background-image: radial-gradient(circle, rgba(230, 57, 70, 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-
-  .pattern-grid {
-    background-image:
-      linear-gradient(rgba(230, 57, 70, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(230, 57, 70, 0.05) 1px, transparent 1px);
-    background-size: 30px 30px;
+  
+  /* Bold, punchy headings */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-black tracking-tight text-[var(--foreground)];
   }
 }
 
-/* 🎬 Keyframe Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
+/* ─── AURA CLASSIC UTILITIES ─── */
 
-  to {
-    opacity: 1;
+/* Gigantic Page Titles (like PANEL, TERMINAL POS, INVENTARIO) */
+@utility aura-page-title {
+  @apply text-5xl md:text-[4rem] font-black italic tracking-tighter uppercase leading-[0.8] mb-1;
+}
+
+/* The sub-header text under the mega giant texts */
+@utility aura-page-subtitle {
+  @apply text-[10px] md:text-xs font-bold text-[#8ba3c7] uppercase tracking-widest mt-2;
+}
+
+/* Base style for those thick rounded white cards */
+@utility aura-card {
+  @apply bg-white rounded-[24px] overflow-hidden relative shadow-[0_4px_24px_rgba(30,58,95,0.04)] border border-slate-100/50;
+}
+
+/* The special Page Header Card with the colored top border */
+@utility aura-header-card {
+  @apply aura-card p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative;
+}
+
+.aura-header-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 33%, #14b8a6 66%, #a855f7 100%);
+  border-radius: 24px 24px 0 0;
+}
+
+/* Stat cards (Ventas Hoy, Pedidos, etc) */
+@utility aura-stat-card {
+  @apply aura-card p-6 flex flex-col gap-1;
+}
+
+@utility aura-stat-card-value {
+  @apply text-3xl xl:text-[2rem] font-black tracking-tighter text-[var(--foreground)] mt-2;
+}
+
+@utility aura-stat-card-label {
+  @apply text-[9px] xl:text-[10px] font-black text-[#8ba3c7] uppercase tracking-[0.2em];
+}
+
+/* Pills (Botoncitos ultra redondos) */
+@utility aura-pill {
+  @apply h-8 px-4 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all inline-flex items-center justify-center gap-1.5 whitespace-nowrap;
+}
+
+@utility aura-pill-outline {
+  @apply border-2 border-slate-100 bg-transparent text-[var(--foreground)] hover:bg-slate-50;
+}
+
+@utility aura-pill-red {
+  @apply bg-[var(--primary)] text-white shadow-[0_4px_12px_rgba(239,68,68,0.3)];
+}
+
+/* Pill container for tabs (like the filter bar in Catalog) */
+@utility aura-tab-container {
+  @apply bg-slate-100/80 p-1.5 rounded-full flex items-center gap-1 w-fit;
+}
+
+/* Floating thin sidebar */
+@utility aura-sidebar {
+  @apply fixed top-6 bottom-6 left-6 w-[70px] bg-[#1e293b] rounded-[35px] flex flex-col items-center py-6 gap-6 shadow-[0_12px_40px_rgba(30,41,59,0.3)] z-50;
+}
+
+/* The icons inside the sidebar */
+@utility aura-nav-item {
+  @apply w-12 h-12 rounded-full flex items-center justify-center text-white/40 transition-all cursor-pointer;
+  &:hover {
+    @apply text-white bg-white/10;
   }
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@utility aura-nav-item-active {
+  @apply bg-[#14b8a6] text-white shadow-[0_0_20px_rgba(20,184,166,0.4)] scale-105;
 }
 
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+@utility aura-nav-item-red {
+  @apply bg-[#ef4444] text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-105;
 }
 
-@keyframes bounceIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.3);
-  }
-
-  50% {
-    transform: scale(1.05);
-  }
-
-  70% {
-    transform: scale(0.9);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+/* Background watermark for products */
+@utility aura-watermark {
+  @apply absolute -bottom-4 -right-4 text-slate-100 w-32 h-32 opacity-50 pointer-events-none;
 }
 
-@keyframes pulseGlow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 10px rgba(230, 57, 70, 0.3);
-  }
-
-  50% {
-    box-shadow: 0 0 25px rgba(230, 57, 70, 0.6);
-  }
+/* Animations */
+@utility animate-enter {
+  animation: auraEnter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-@keyframes sizzle {
-
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  25% {
-    transform: translateX(-1px) rotate(-0.5deg);
-  }
-
-  75% {
-    transform: translateX(1px) rotate(0.5deg);
-  }
+@keyframes auraEnter {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 📜 Scrollbar - Branded */
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
-
-::-webkit-scrollbar-track {
-  background: var(--muted);
-}
-
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--salsa) 0%, var(--fire) 100%);
-  border-radius: 99px;
+  background: #cbd5e1;
+  border-radius: 10px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--salsa-dark);
+  background: #94a3b8;
 }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

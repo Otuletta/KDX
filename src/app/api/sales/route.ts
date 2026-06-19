@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getIsDemo } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET(request: Request) {
     try {
@@ -8,10 +8,12 @@ export async function GET(request: Request) {
         const limit = parseInt(searchParams.get("limit") || "50");
         const registerId = searchParams.get("registerId");
         const today = searchParams.get("today") === "true";
-        const isDemo = await getIsDemo();
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const where: Record<string, unknown> = {
-            isDemo: isDemo
+            tenantId,
         };
 
         if (registerId) {
@@ -54,12 +56,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        if (await getIsDemo()) {
-            return NextResponse.json(
-                { error: "Modo Demo: Acceso de solo lectura" },
-                { status: 403 }
-            );
-        }
 
         const body = await request.json();
 
@@ -128,11 +124,18 @@ export async function POST(request: Request) {
         const discount = parseFloat(body.discount) || 0;
         const total = subtotal - discount;
 
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        const branchId = session?.user?.branchId;
+        if (!tenantId || !branchId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
         // Use transaction to ensure data consistency
         const sale = await prisma.$transaction(async (tx) => {
             // Create sale with items
             const newSale = await tx.sale.create({
                 data: {
+                    tenantId: tenantId,
+                    branchId: branchId,
                     subtotal,
                     discount,
                     total,

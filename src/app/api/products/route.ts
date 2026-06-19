@@ -1,18 +1,24 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getIsDemo } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get("search") || "";
         const inStock = searchParams.get("inStock") === "true";
-        const isDemo = await getIsDemo();
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+
+        if (!tenantId) {
+            console.log("No tenant id found in session", session);
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
 
         const products = await prisma.product.findMany({
             where: {
+                tenantId,
                 isActive: true,
-                isDemo: isDemo,
                 ...(search && {
                     name: { contains: search, mode: "insensitive" },
                 }),
@@ -35,6 +41,7 @@ export async function GET(request: Request) {
             ...p,
             sellingPrice: p.price,
         }));
+        console.log(`Returning ${mappedProducts.length} products for tenant ${tenantId}`);
 
         return NextResponse.json(mappedProducts);
     } catch (error) {
@@ -48,12 +55,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        if (await getIsDemo()) {
-            return NextResponse.json(
-                { error: "Modo Demo: Acceso de solo lectura" },
-                { status: 403 }
-            );
-        }
 
         const body = await request.json();
 
@@ -81,8 +82,13 @@ export async function POST(request: Request) {
             );
         }
 
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
         const product = await prisma.product.create({
             data: {
+                tenantId: tenantId,
                 name: body.name.trim(),
                 description: body.description?.trim() || null,
                 recipeId: body.recipeId || null,

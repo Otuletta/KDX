@@ -50,7 +50,7 @@ export async function PATCH(
         const body = await request.json();
 
         // If updating ingredients, recalculate cost
-        let updateData: Record<string, unknown> = {
+        const updateData: Record<string, unknown> = {
             name: body.name,
             description: body.description,
             yield: body.yield,

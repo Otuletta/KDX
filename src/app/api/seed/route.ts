@@ -28,8 +28,23 @@ export async function GET() {
             prisma.user.deleteMany({ where: { email: 'demo@salsealo.com' } })
         ]);
 
-        // 2. Create User
-        console.log('👤 Creating Demo User...');
+        // 2. Create Tenant, Branch and User
+        console.log('🏢 Creating Demo Tenant, Branch & User...');
+
+        let tenant = await prisma.tenant.findFirst({ where: { slug: 'demo' } });
+        if (!tenant) {
+            tenant = await prisma.tenant.create({
+                data: { name: 'Salsealo Demo', slug: 'demo', isDemo: true }
+            });
+        }
+
+        let branch = await prisma.branch.findFirst({ where: { tenantId: tenant.id } });
+        if (!branch) {
+            branch = await prisma.branch.create({
+                data: { name: 'Demo Central', tenantId: tenant.id }
+            });
+        }
+
         const demoPassword = await bcrypt.hash('Demo123!', 10);
         await prisma.user.create({
             data: {
@@ -37,6 +52,7 @@ export async function GET() {
                 email: 'demo@salsealo.com',
                 password: demoPassword,
                 role: 'DEMO',
+                tenantId: tenant.id,
             },
         });
 
@@ -55,7 +71,7 @@ export async function GET() {
         for (const s of suppliersData) {
             const { category, ...supplierData } = s;
             const created = await prisma.supplier.create({
-                data: { ...supplierData, isDemo: true }
+                data: { ...supplierData, isDemo: true, tenantId: tenant.id }
             });
             suppliersMap.set(category, created.id);
         }
@@ -95,7 +111,7 @@ export async function GET() {
             const created = await prisma.ingredient.create({
                 data: {
                     name: `[DEMO] ${i.name}`, unit: i.unit, avgCost: i.cost, currentStock: i.stock, minStock: 10,
-                    supplierId: supId, category: i.category, isDemo: true, isActive: true
+                    supplierId: supId, category: i.category, isDemo: true, isActive: true, tenantId: tenant.id
                 }
             });
             ingMap.set(i.name, created.id);
@@ -139,6 +155,7 @@ export async function GET() {
                 data: {
                     name: r.name, yield: r.yield, yieldUnit: r.unit, category: r.category, targetMargin: r.margin,
                     calculatedCost: calCost, suggestedPrice: r.price, prepTime: r.prepTime, isDemo: true, isActive: true,
+                    tenantId: tenant.id,
                     ingredients: { create: recipeIngs }
                 }
             });
@@ -161,7 +178,7 @@ export async function GET() {
             const created = await prisma.product.create({
                 data: {
                     name: p.name, description: p.desc, price: p.price, currentStock: 50, minStock: 10,
-                    category: p.cat, recipeId: recipeId, isDemo: true, isActive: true
+                    category: p.cat, recipeId: recipeId, isDemo: true, isActive: true, tenantId: tenant.id
                 }
             });
             productsList.push(created);
@@ -219,7 +236,7 @@ export async function GET() {
                     data: {
                         createdAt: orderDate, subtotal: subtotal, total: subtotal, discount: 0,
                         paymentMethod: paymentMethods[Math.floor(Math.random() * paymentMethods.length)],
-                        status: 'COMPLETED', isDemo: true, items: { create: saleItems }
+                        status: 'COMPLETED', isDemo: true, tenantId: tenant.id, branchId: branch.id, items: { create: saleItems }
                     }
                 });
             }

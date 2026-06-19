@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getIsDemo } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET(request: Request) {
     try {
@@ -8,12 +8,14 @@ export async function GET(request: Request) {
         const search = searchParams.get("search") || "";
         const category = searchParams.get("category") || "";
         const status = searchParams.get("status") || "";
-        const isDemo = await getIsDemo();
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const ingredients = await prisma.ingredient.findMany({
             where: {
+                tenantId,
                 isActive: true,
-                isDemo: isDemo,
                 ...(search && {
                     name: {
                         contains: search,
@@ -59,12 +61,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        if (await getIsDemo()) {
-            return NextResponse.json(
-                { error: "Modo Demo: Acceso de solo lectura" },
-                { status: 403 }
-            );
-        }
 
         const body = await request.json();
 
@@ -107,8 +103,13 @@ export async function POST(request: Request) {
             );
         }
 
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
         const ingredient = await prisma.ingredient.create({
             data: {
+                tenantId: tenantId,
                 name: body.name.trim(),
                 unit: body.unit.trim(),
                 currentStock: currentStock,

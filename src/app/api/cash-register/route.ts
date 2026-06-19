@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getIsDemo } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET() {
     try {
-        const isDemo = await getIsDemo();
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         // Get open cash register
         const openRegister = await prisma.cashRegister.findFirst({
             where: {
+                tenantId,
                 closedAt: null,
-                isDemo: isDemo
             },
             orderBy: { openedAt: "desc" },
         });
@@ -21,8 +23,8 @@ export async function GET() {
 
         const registers = await prisma.cashRegister.findMany({
             where: {
+                tenantId,
                 openedAt: { gte: startOfDay },
-                isDemo: isDemo
             },
             orderBy: { openedAt: "desc" },
         });
@@ -42,12 +44,6 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
-        if (await getIsDemo()) {
-            return NextResponse.json(
-                { error: "Modo Demo: Acceso de solo lectura" },
-                { status: 403 }
-            );
-        }
 
         const body = await request.json();
 
@@ -72,8 +68,15 @@ export async function POST(request: Request) {
             );
         }
 
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        const branchId = session?.user?.branchId;
+        if (!tenantId || !branchId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
         const register = await prisma.cashRegister.create({
             data: {
+                tenantId: tenantId,
+                branchId: branchId,
                 openingBalance: openingBalance,
             },
         });

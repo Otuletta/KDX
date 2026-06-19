@@ -1,14 +1,12 @@
 "use server";
 
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { encrypt } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 
-const prisma = new PrismaClient();
-
-export async function login(prevState: any, formData: FormData) {
+export async function login(prevState: unknown, formData: FormData) {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
@@ -17,9 +15,9 @@ export async function login(prevState: any, formData: FormData) {
     }
 
     try {
-        // @ts-ignore
         const user = await prisma.user.findUnique({
             where: { email: email.toLowerCase() },
+            include: { branches: true },
         });
 
         if (!user) {
@@ -38,6 +36,9 @@ export async function login(prevState: any, formData: FormData) {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                tenantId: user.tenantId,
+                branchId: user.branches?.[0]?.branchId || null,
+                isSuperAdmin: user.isSuperAdmin,
             },
             expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
         };
@@ -54,44 +55,6 @@ export async function login(prevState: any, formData: FormData) {
     } catch (error) {
         console.error("Login Error:", error);
         return { error: "Error de servidor" };
-    }
-
-    redirect("/");
-}
-
-export async function loginDemo() {
-    try {
-        const user = await prisma.user.findUnique({
-            where: { email: "demo@salsealo.com" },
-        });
-
-        if (!user) {
-            return { error: "Usuario Demo no encontrado. Por favor contacta al administrador." };
-        }
-
-        // Create session
-        const sessionData = {
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            },
-            expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-        };
-
-        const token = await encrypt(sessionData);
-
-        (await cookies()).set("session", token, {
-            expires: sessionData.expires,
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-        });
-
-    } catch (error) {
-        console.error("Demo Login Error:", error);
-        return { error: "Error de servidor al iniciar demo" };
     }
 
     redirect("/");

@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getIsDemo } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get("search") || "";
-        const isDemo = await getIsDemo();
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const recipes = await prisma.recipe.findMany({
             where: {
+                tenantId,
                 isActive: true,
-                isDemo: isDemo,
                 ...(search && {
                     name: {
                         contains: search,
@@ -55,12 +57,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        if (await getIsDemo()) {
-            return NextResponse.json(
-                { error: "Modo Demo: Acceso de solo lectura" },
-                { status: 403 }
-            );
-        }
 
         const body = await request.json();
 
@@ -125,13 +121,17 @@ export async function POST(request: Request) {
         // Calculate cost per unit (protected against division by zero)
         const costPerUnit = yieldValue > 0 ? totalCost / yieldValue : 0;
 
-        // Calculate suggested price based on target margin
+        // Calculate suggested price based on target markup
         const targetMargin = parseFloat(body.targetMargin) || 40;
-        const suggestedPrice =
-            targetMargin >= 100 ? costPerUnit * 10 : costPerUnit / (1 - targetMargin / 100);
+        const suggestedPrice = costPerUnit * (1 + targetMargin / 100);
+
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const recipe = await prisma.recipe.create({
             data: {
+                tenantId: tenantId,
                 name: body.name.trim(),
                 description: body.description?.trim() || null,
                 yield: yieldValue,

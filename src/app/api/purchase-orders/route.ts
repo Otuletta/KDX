@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const supplierId = searchParams.get("supplierId");
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const where: Record<string, unknown> = {};
+        const where: Record<string, unknown> = { tenantId };
         if (supplierId) {
             where.supplierId = supplierId;
         }
@@ -31,13 +35,35 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
+
         const body = await request.json();
-        const { supplierId, autoGenerate } = body;
+        const { supplierId, autoGenerate, repeatLast, notes } = body;
 
         let itemsToCreate = body.items || [];
 
+        // Repeat last order logic
+        if (repeatLast && supplierId) {
+            const lastOrder = await prisma.purchaseOrder.findFirst({
+                where: { supplierId },
+                orderBy: { createdAt: "desc" },
+                include: { items: true }
+            });
+
+            if (!lastOrder || lastOrder.items.length === 0) {
+                return NextResponse.json(
+                    { error: "No hay órdenes previas para repetir con este proveedor. Debe crear una orden manual." },
+                    { status: 400 }
+                );
+            }
+
+            itemsToCreate = lastOrder.items.map((item: any) => ({
+                ingredientId: item.ingredientId,
+                quantity: Number(item.quantity),
+                estimatedCost: Number(item.estimatedCost),
+            }));
+        }
         // Auto-generate logic
-        if (autoGenerate && supplierId) {
+        else if (autoGenerate && supplierId) {
             const lowStockIngredients = await prisma.ingredient.findMany({
                 where: {
                     supplierId,
@@ -79,13 +105,21 @@ export async function POST(request: Request) {
                 sum + (item.quantity * item.estimatedCost), 0
         );
 
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        const branchId = session?.user?.branchId;
+        if (!tenantId || !branchId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
         const order = await prisma.purchaseOrder.create({
             data: {
-                supplierId,
+                tenant: { connect: { id: tenantId } },
+                branch: { connect: { id: branchId } },
+                ...(supplierId ? { supplierId } : {}),
                 status: "DRAFT",
                 totalAmount,
+                notes,
                 items: {
-                    create: itemsToCreate.map((item: any) => ({
+                    create: itemsToCreate.map((item: { ingredientId: string; quantity: number; estimatedCost: number }) => ({
                         ingredientId: item.ingredientId,
                         quantity: item.quantity,
                         estimatedCost: item.estimatedCost,

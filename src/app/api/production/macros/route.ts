@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 export async function GET() {
     try {
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
         const macros = await prisma.productionMacro.findMany({
-            where: { isActive: true },
+            where: { tenantId, isActive: true },
             orderBy: { sortOrder: "asc" },
         });
 
@@ -20,10 +25,16 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
+
         const body = await request.json();
+
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const macro = await prisma.productionMacro.create({
             data: {
+                tenantId: tenantId,
                 name: body.name,
                 recipeId: body.recipeId,
                 quantity: body.quantity,

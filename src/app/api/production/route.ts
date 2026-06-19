@@ -1,18 +1,20 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getIsDemo } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const limit = parseInt(searchParams.get("limit") || "20");
-        const isDemo = await getIsDemo();
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         // Validate limit
         const validLimit = isNaN(limit) || limit <= 0 ? 20 : Math.min(limit, 100);
 
         const batches = await prisma.productionBatch.findMany({
-            where: { isDemo: isDemo },
+            where: { tenantId },
             take: validLimit,
             orderBy: { producedAt: "desc" },
             include: {
@@ -37,12 +39,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        if (await getIsDemo()) {
-            return NextResponse.json(
-                { error: "Modo Demo: Acceso de solo lectura" },
-                { status: 403 }
-            );
-        }
 
         const body = await request.json();
         const { recipeId, quantity } = body;
@@ -117,6 +113,11 @@ export async function POST(request: Request) {
             );
         }
 
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        const branchId = session?.user?.branchId;
+        if (!tenantId || !branchId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
         // Execute "Material Explosion" - deduct ingredients and create stock movements
         const stockUpdates = recipe.ingredients.map((item) => {
             const deductQty = Number(item.quantity) * multiplier;
@@ -125,6 +126,7 @@ export async function POST(request: Request) {
                 // Create stock movement
                 prisma.stockMovement.create({
                     data: {
+                        branchId: branchId,
                         ingredientId: item.ingredientId,
                         type: "OUT",
                         quantity: deductQty,
@@ -149,6 +151,8 @@ export async function POST(request: Request) {
         // Create production batch record
         const batch = await prisma.productionBatch.create({
             data: {
+                tenantId: tenantId,
+                branchId: branchId,
                 recipeId: recipeId,
                 quantity: qty,
                 status: "COMPLETED",

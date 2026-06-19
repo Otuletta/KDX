@@ -1,50 +1,58 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Poppins } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { AppShell } from "@/components/app-shell";
 
 const inter = Inter({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
-});
-
-const poppins = Poppins({
-  variable: "--font-poppins",
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
 export const metadata: Metadata = {
   title: {
-    default: "Salséalo Manager",
-    template: "%s | Salséalo Manager",
+    default: "KDX",
+    template: "%s | KDX",
   },
   description:
-    "Sistema de gestión gastronómica de alto rendimiento. Control de inventario, producción y finanzas en tiempo real.",
+    "Sistema de gestión operativa para restaurantes. Inventario, ventas, finanzas y producción.",
   keywords: [
     "gestión restaurante",
-    "inventario cocina",
+    "inventario producción",
     "control costos",
-    "recetas",
-    "producción",
+    "punto de venta",
+    "operaciones",
   ],
-  authors: [{ name: "Salséalo" }],
+  authors: [{ name: "KDX" }],
+  openGraph: {
+    type: "website",
+    locale: "es_ES",
+    url: "https://aurapos.com",
+    title: "KDX",
+    description: "Punto de Venta Inteligente y Gestión Gastronómica",
+    siteName: "KDX",
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Salséalo",
+    title: "KDX",
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#1a1a2e" },
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#111827" },
+    { media: "(prefers-color-scheme: light)", color: "#F9FAFB" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -59,7 +67,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>

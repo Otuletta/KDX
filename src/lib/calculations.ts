@@ -3,16 +3,23 @@ import { Decimal } from "@prisma/client/runtime/library";
 /**
  * Convierte Decimal de Prisma a número para cálculos
  */
-export function toNumber(value: Decimal | number | null | undefined): number {
+export function toNumber(value: Decimal | number | string | null | undefined): number {
     if (value === null || value === undefined) return 0;
     if (typeof value === "number") return value;
-    return value.toNumber();
+    if (typeof value === "string") {
+        const parsed = parseFloat(value);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+    if (typeof value === "object" && typeof (value as any).toNumber === "function") {
+        return (value as any).toNumber();
+    }
+    return 0;
 }
 
 /**
  * Formatea un número como moneda (RD$)
  */
-export function formatCurrency(value: number | Decimal): string {
+export function formatCurrency(value: number | Decimal | string): string {
     const num = typeof value === "number" ? value : toNumber(value);
     return new Intl.NumberFormat("es-DO", {
         style: "currency",
@@ -32,19 +39,18 @@ export function formatPercent(value: number): string {
 }
 
 /**
- * Calcula el precio sugerido basado en costo y margen
+ * Calcula el precio sugerido basado en costo y porcentaje de markup (de 0 a 200% o más)
  */
 export function calculateSuggestedPrice(cost: number, marginPercent: number): number {
-    if (marginPercent >= 100) return cost * 10; // Límite superior
-    return cost / (1 - marginPercent / 100);
+    return cost * (1 + marginPercent / 100);
 }
 
 /**
- * Calcula el margen real dado costo y precio
+ * Calcula el margen real (markup) dado costo y precio
  */
 export function calculateMargin(cost: number, price: number): number {
-    if (price === 0) return 0;
-    return ((price - cost) / price) * 100;
+    if (cost === 0) return 0;
+    return ((price - cost) / cost) * 100;
 }
 
 /**

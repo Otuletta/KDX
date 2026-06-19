@@ -22,13 +22,19 @@ export async function middleware(request: NextRequest) {
     // 3. Verify session validity
     if (session) {
         try {
-            await decrypt(session);
+            const decoded = await decrypt(session);
+
+            // Access control for Super Admin routes
+            const isSuperAdminRoute = request.nextUrl.pathname.startsWith("/super-admin");
+            if (isSuperAdminRoute && !decoded?.user?.isSuperAdmin) {
+                return NextResponse.redirect(new URL("/", request.url));
+            }
 
             // If already logged in and visiting login -> dashboard
             if (request.nextUrl.pathname === "/login") {
                 return NextResponse.redirect(new URL("/", request.url));
             }
-        } catch (e) {
+        } catch {
             // Invalid token -> login
             if (!isPublicRoute) {
                 return NextResponse.redirect(new URL("/login", request.url));

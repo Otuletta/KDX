@@ -41,9 +41,11 @@ export function useCreatePurchaseOrder() {
 
     return useMutation({
         mutationFn: async (data: {
-            supplierId: string;
+            supplierId?: string | null;
             autoGenerate?: boolean;
+            repeatLast?: boolean;
             items?: { ingredientId: string; quantity: number; estimatedCost: number }[];
+            notes?: string;
         }) => {
             const res = await fetch("/api/purchase-orders", {
                 method: "POST",
@@ -60,6 +62,33 @@ export function useCreatePurchaseOrder() {
             queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
             queryClient.invalidateQueries({ queryKey: ["suppliers"] }); // To update counts if linked
             toast.success("Orden de compra creada exitosamente");
+        },
+        onError: (error: Error) => {
+            toast.error(error.message);
+        },
+    });
+}
+
+export function useUpdatePurchaseOrderStatus() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, status }: { id: string; status: "SENT" | "RECEIVED" | "CANCELLED" }) => {
+            const res = await fetch(`/api/purchase-orders/${id}/status`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status }),
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || "Error al actualizar estado");
+            }
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+            queryClient.invalidateQueries({ queryKey: ["ingredients"] }); // To update stock if received
+            toast.success("Estado actualizado exitosamente");
         },
         onError: (error: Error) => {
             toast.error(error.message);

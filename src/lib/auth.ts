@@ -1,11 +1,24 @@
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT, jwtVerify, JWTPayload } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 const SECRET_KEY = process.env.JWT_SECRET || "salsealo-super-secret-key-2026";
 const key = new TextEncoder().encode(SECRET_KEY);
 
-export async function encrypt(payload: any) {
+export interface SessionPayload extends JWTPayload {
+    user: {
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        tenantId: string;
+        branchId: string | null;
+        isSuperAdmin: boolean;
+    };
+    expires: Date;
+}
+
+export async function encrypt(payload: SessionPayload) {
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
@@ -13,11 +26,11 @@ export async function encrypt(payload: any) {
         .sign(key);
 }
 
-export async function decrypt(input: string): Promise<any> {
+export async function decrypt(input: string): Promise<SessionPayload> {
     const { payload } = await jwtVerify(input, key, {
         algorithms: ["HS256"],
     });
-    return payload;
+    return payload as SessionPayload;
 }
 
 export async function getSession() {
@@ -25,7 +38,7 @@ export async function getSession() {
     if (!session) return null;
     try {
         return await decrypt(session);
-    } catch (error) {
+    } catch {
         return null;
     }
 }
@@ -45,9 +58,4 @@ export async function updateSession(request: NextRequest) {
         expires: parsed.expires,
     });
     return res;
-}
-
-export async function getIsDemo() {
-    const session = await getSession();
-    return session?.user?.role === 'DEMO';
 }

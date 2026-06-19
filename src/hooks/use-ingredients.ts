@@ -39,6 +39,17 @@ export interface StockMovementInput {
     invoiceRef?: string;
 }
 
+export interface StockMovement {
+    id: string;
+    ingredientId: string;
+    type: "IN" | "OUT" | "ADJUST";
+    quantity: number;
+    reason: string | null;
+    referenceId: string | null;
+    createdAt: string;
+    branch: { name: string };
+}
+
 // Fetch all ingredients
 export function useIngredients(filters?: {
     search?: string;
@@ -67,6 +78,19 @@ export function useIngredient(id: string) {
         queryFn: async () => {
             const res = await fetch(`/api/ingredients/${id}`);
             if (!res.ok) throw new Error("Error al cargar ingrediente");
+            return res.json();
+        },
+        enabled: !!id,
+    });
+}
+
+// Fetch ingredient movements (Kardex)
+export function useIngredientMovements(id: string) {
+    return useQuery<StockMovement[]>({
+        queryKey: ["ingredients", id, "movements"],
+        queryFn: async () => {
+            const res = await fetch(`/api/ingredients/${id}/movements`);
+            if (!res.ok) throw new Error("Error al cargar historial de stock");
             return res.json();
         },
         enabled: !!id,

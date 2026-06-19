@@ -19,12 +19,20 @@ async function main() {
         return;
     }
 
+    let tenant = await prisma.tenant.findFirst();
+    if (!tenant) {
+        tenant = await prisma.tenant.create({
+            data: { name: 'Salsealo Default', slug: 'salsealo' }
+        });
+    }
+
     const admin = await prisma.user.create({
         data: {
             name: 'Otuletta',
             email: 'otuletta@salsealo.com',
             password: adminPassword,
             role: 'ADMIN',
+            tenantId: tenant.id
         },
     });
 
@@ -34,6 +42,7 @@ async function main() {
             email: 'mtuletta@salsealo.com',
             password: ownerPassword,
             role: 'OWNER',
+            tenantId: tenant.id
         },
     });
 
@@ -43,6 +52,7 @@ async function main() {
             email: 'nathaly@salsealo.com',
             password: ownerPassword,
             role: 'OWNER',
+            tenantId: tenant.id
         },
     });
 

@@ -168,14 +168,13 @@ export function calculateRecipeCost(
     }, 0);
 }
 
-// Calculate suggested price
+// Calculate suggested price (Markup)
 export function calculateSuggestedPrice(cost: number, marginPercent: number): number {
-    if (marginPercent >= 100) return cost * 10;
-    return cost / (1 - marginPercent / 100);
+    return cost * (1 + marginPercent / 100);
 }
 
-// Calculate actual margin
+// Calculate actual margin (Markup)
 export function calculateMargin(cost: number, price: number): number {
-    if (price === 0) return 0;
-    return ((price - cost) / price) * 100;
+    if (cost === 0) return 0;
+    return ((price - cost) / cost) * 100;
 }

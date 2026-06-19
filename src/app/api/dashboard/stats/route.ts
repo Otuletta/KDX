@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getIsDemo } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET() {
     try {
-        const isDemo = await getIsDemo();
+        const session = await getSession();
+        const tenantId = session?.user?.tenantId;
+        if (!tenantId) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+        }
+
         const now = new Date();
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(now.getDate() - 7);
@@ -13,11 +18,11 @@ export async function GET() {
         // 1. Weekly Trend (Last 7 Days)
         const weeklySales = await prisma.sale.findMany({
             where: {
+                tenantId,
                 createdAt: {
                     gte: sevenDaysAgo,
                 },
                 status: 'COMPLETED',
-                isDemo: isDemo
             },
             select: {
                 createdAt: true,
@@ -25,11 +30,10 @@ export async function GET() {
             },
         });
 
-        // Group by day name (Mon, Tue, etc.)
+        // Group by day name
         const daysMap = new Map();
         const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-        // Initialize last 7 days with 0
         for (let i = 6; i >= 0; i--) {
             const d = new Date();
             d.setDate(now.getDate() - i);
@@ -52,7 +56,7 @@ export async function GET() {
             val
         }));
 
-        // 2. Best Sellers (Top Products)
+        // 2. Best Sellers (Top Products) — filtered by tenant
         const topProducts = await prisma.saleItem.groupBy({
             by: ['productId'],
             _sum: {
@@ -66,23 +70,22 @@ export async function GET() {
             take: 5,
             where: {
                 sale: {
+                    tenantId,
                     createdAt: {
-                        gte: sevenDaysAgo, // Best sellers of the week? Or all time? Let's do all time or month. Let's do week for consistency with chart.
+                        gte: sevenDaysAgo,
                     },
                     status: 'COMPLETED',
-                    isDemo: isDemo
                 }
             }
         });
 
         // Fetch product names
+        const colors = ['#6366F1', '#3B82F6', '#06B6D4', '#10B981', '#F59E0B'];
         const pieData = await Promise.all(topProducts.map(async (item, index) => {
             const product = await prisma.product.findUnique({
                 where: { id: item.productId },
                 select: { name: true }
             });
-
-            const colors = ['var(--salsa)', '#eab308', 'var(--lime)', 'var(--salsa-dark)', '#a3e635'];
 
             return {
                 name: product?.name || 'Unknown',

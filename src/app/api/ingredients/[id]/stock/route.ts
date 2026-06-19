@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
 export async function POST(
     request: Request,
@@ -49,10 +50,15 @@ export async function POST(
             newStock = quantity;
         }
 
+        const session = await getSession();
+        const branchId = session?.user?.branchId;
+        if (!branchId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
         // Create movement and update stock in transaction
         const [movement] = await prisma.$transaction([
             prisma.stockMovement.create({
                 data: {
+                    branchId: branchId,
                     ingredientId: id,
                     type: body.type,
                     quantity: body.type === "ADJUST" ? quantity - currentStock : quantity,

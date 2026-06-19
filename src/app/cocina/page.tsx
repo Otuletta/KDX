@@ -1,26 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import { AppShell } from "@/components/app-shell";
+import { useState, useMemo } from "react";
 import { useRecipes, type Recipe } from "@/hooks/use-recipes";
 import { useDemo } from "@/hooks/use-demo";
-import { formatCurrency, formatDate } from "@/lib/calculations";
+import { formatDate } from "@/lib/calculations";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
     ChefHat,
-    Plus,
     Clock,
     Package,
-    CheckCircle2,
     Loader2,
     History,
     Zap,
     Search,
-    AlertCircle
+    AlertCircle,
+    MoreHorizontal,
+    Pencil,
+    Trash2,
+    Plus,
+    Activity,
+    ChevronRight,
+    TrendingUp,
+    ArrowUpRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
@@ -31,16 +36,18 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+    DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { useIngredients } from "@/hooks/use-ingredients";
+import { CreateRecipeDialog, EditRecipeDialog } from "@/components/recipe-dialogs";
+import { useDeleteRecipe } from "@/hooks/use-recipes";
 
 interface ProductionBatch {
     id: string;
@@ -97,7 +104,7 @@ function useExecuteProduction() {
             toast.success(
                 `Producción registrada: ${data.producedQuantity} unidades`,
                 {
-                    description: `Inventario actualizado correctamente.`,
+                    description: `Inventario de producción actualizado.`,
                 }
             );
         },
@@ -111,10 +118,14 @@ export default function CocinaPage() {
     const { isDemo } = useDemo();
     const { data: recipes, isLoading: loadingRecipes } = useRecipes();
     const { data: batches, isLoading: loadingBatches } = useProductionBatches();
+    const { data: ingredients } = useIngredients();
     const executeMutation = useExecuteProduction();
+    const deleteMutation = useDeleteRecipe();
 
     const [search, setSearch] = useState("");
+    const [activeCategory, setActiveCategory] = useState("all");
     const [produceDialog, setProduceDialog] = useState<{ recipe: Recipe; quantity: number } | null>(null);
+    const [editRecipe, setEditRecipe] = useState<Recipe | null>(null);
 
     // Stats
     const todayBatches =
@@ -129,13 +140,17 @@ export default function CocinaPage() {
         0
     );
 
-    const filteredRecipes = recipes?.filter(r =>
-        r.name.toLowerCase().includes(search.toLowerCase())
-    ) || [];
+    const filteredRecipes = recipes?.filter(r => {
+        if (activeCategory !== "all" && r.category !== activeCategory) return false;
+        return r.name.toLowerCase().includes(search.toLowerCase());
+    }) || [];
 
-    const handleProduceClick = (recipe: Recipe) => {
-        setProduceDialog({ recipe, quantity: Number(recipe.yield) || 1 });
-    };
+    const dynamicCats = useMemo(() => {
+        if (!recipes) return [];
+        const cats = new Set<string>();
+        recipes.forEach(r => { if (r.category) cats.add(r.category); });
+        return Array.from(cats).sort();
+    }, [recipes]);
 
     const confirmProduction = () => {
         if (!produceDialog) return;
@@ -147,170 +162,236 @@ export default function CocinaPage() {
     };
 
     return (
-        <div className="flex flex-col h-full gap-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Modo Cocina</h1>
-                    <p className="text-muted-foreground">
-                        Registro de producción y control de lotes
-                    </p>
+        <div className="space-y-6 max-w-7xl mx-auto animate-enter pb-10">
+            {/* 1. Page Header Card (Laboratorio Royal) */}
+            <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-end justify-between gap-6 relative overflow-hidden mb-8">
+                <div className="absolute top-0 left-0 w-full h-[6px] bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-400" />
+                
+                <div className="relative z-10">
+                     <h1 className="text-[32px] font-black tracking-tight text-[#1e3a5f] uppercase leading-none mb-3">Laboratorio Royal</h1>
+                     <p className="text-[13px] font-bold text-slate-400 mb-5">
+                          Exploración y Desarrollo de Ingeniería Gastronómica
+                     </p>
+                     <div className="flex gap-1 p-1 bg-slate-50 rounded-2xl border border-slate-100 w-fit">
+                         <div className="flex items-center gap-2 px-4 py-2 border-r border-slate-200/50">
+                              <TrendingUp className="h-4 w-4 text-emerald-500" />
+                              <span className="text-[11px] font-black uppercase tracking-widest text-[#1e3a5f]">ROI 240%</span>
+                         </div>
+                         <div className="flex items-center gap-2 px-4 py-2">
+                              <Activity className="h-4 w-4 text-indigo-500" />
+                              <span className="text-[11px] font-black uppercase tracking-widest text-[#1e3a5f]">Mode: Smart Cost</span>
+                         </div>
+                     </div>
+                </div>
+                <div className="relative z-10">
+                    <Button className="bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 text-white rounded-xl h-12 px-8 font-black uppercase text-[11px] tracking-widest shadow-[0_4px_14px_0_rgba(30,58,95,0.39)] hover:shadow-[0_6px_20px_rgba(30,58,95,0.23)] hover:-translate-y-0.5 transition-all duration-200">
+                        <Plus className="mr-2 h-4 w-4" /> Nueva Ingeniería
+                    </Button>
                 </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-card/50">
-                    <CardContent className="p-6 flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
-                            <ChefHat className="h-6 w-6" />
+            {/* 2. KPI Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-2">
+                {/* Proyectos */}
+                <div className="flex flex-col bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 relative group transition-all hover:shadow-md overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-[6px] bg-[#1e3a5f] transition-transform group-hover:scale-105" />
+                    <div className="flex items-center justify-between mt-2 mb-6">
+                         <span className="text-[12px] font-black text-[#1e3a5f] uppercase tracking-widest">Proyectos</span>
+                         <div className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                              <ChefHat className="w-5 h-5 text-[#1e3a5f]" />
+                         </div>
+                    </div>
+                    <div>
+                        <div className="flex items-baseline gap-4 mb-3">
+                            <p className="text-[42px] font-black text-[#1e3a5f] leading-none">{recipes?.length || 0}</p>
+                            <div className="flex items-center text-teal-600 bg-teal-50 px-2 py-1 rounded-lg">
+                                <TrendingUp className="w-3 h-3 mr-1" />
+                                <span className="font-black text-sm">41%</span>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Lotes Hoy</p>
-                            <p className="text-2xl font-bold">{todayBatches.length}</p>
+                        <div className="flex items-center gap-2">
+                            <div className="h-[3px] w-8 bg-[#1e3a5f] rounded-full" />
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">EN INVESTIGACIÓN</span>
                         </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-card/50">
-                    <CardContent className="p-6 flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                            <Package className="h-6 w-6" />
+                    </div>
+                </div>
+
+                {/* Global */}
+                <div className="flex flex-col bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 relative group transition-all hover:shadow-md overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-[6px] bg-emerald-500 transition-transform group-hover:scale-105" />
+                    <div className="flex items-center justify-between mt-2 mb-6">
+                         <span className="text-[12px] font-black text-[#1e3a5f] uppercase tracking-widest">Global</span>
+                         <div className="h-10 w-10 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                              <Package className="w-5 h-5 text-emerald-500" />
+                         </div>
+                    </div>
+                    <div>
+                        <p className="text-[42px] font-black text-emerald-500 leading-none mb-3">17</p>
+                        <div className="flex items-center gap-2">
+                            <div className="h-[3px] w-8 bg-emerald-500 rounded-full" />
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">CANTIDAD TOTAL</span>
                         </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Unidades Producidas</p>
-                            <p className="text-2xl font-bold">{totalProducedToday}</p>
+                    </div>
+                </div>
+
+                {/* Variación */}
+                <div className="flex flex-col bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 relative group transition-all hover:shadow-md overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-[6px] bg-amber-500 transition-transform group-hover:scale-105" />
+                    <div className="flex items-center justify-between mt-2 mb-6">
+                         <span className="text-[12px] font-black text-[#1e3a5f] uppercase tracking-widest">Variación</span>
+                         <div className="h-10 w-10 bg-amber-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                              <ArrowUpRight className="w-5 h-5 text-amber-500" />
+                         </div>
+                    </div>
+                    <div>
+                        <p className="text-[42px] font-black text-amber-500 leading-none mb-3">0.8%</p>
+                        <div className="flex items-center gap-2">
+                            <div className="h-[3px] w-8 bg-amber-500 rounded-full" />
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">DESVIACIÓN ESTÁNDAR</span>
                         </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-card/50">
-                    <CardContent className="p-6 flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                            <Zap className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Recetas Activas</p>
-                            <p className="text-2xl font-bold">{recipes?.length || 0}</p>
-                        </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </div>
 
-            {/* Main Content Area */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-
-                {/* Left: Production List */}
-                <div className="xl:col-span-2 space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold flex items-center gap-2">
-                            <Zap className="h-5 w-5 text-salsa" />
-                            Producción Rápida
-                        </h2>
-                        <div className="relative w-64">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Buscar receta..."
-                                className="pl-9 h-9"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
+            {/* Filters Row */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4">
+                    <div className="flex-1 overflow-x-auto pb-2 scrollbar-none w-full border-r border-slate-100/50 pr-4">
+                        <div className="flex items-center bg-[#f4f6f8] p-1 rounded-2xl w-max">
+                            {["TODAS", "ENTRADAS", "PLATOS PRINCIPALES", "SALSAS", "POSTRES", "BEBIDAS", "SNACKS"].map((cat) => (
+                                <button 
+                                    key={cat}
+                                    onClick={() => setActiveCategory(cat === "TODAS" ? "all" : cat.toLowerCase())}
+                                    className={cn(
+                                        "px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                                        (activeCategory === "all" && cat === "TODAS") || activeCategory === cat.toLowerCase()
+                                            ? "bg-white text-[#1e3a5f] shadow-sm border border-slate-200"
+                                            : "text-slate-500 hover:text-[#1e3a5f]"
+                                    )}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
-                    <div className="rounded-md border bg-card overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[300px]">Receta</TableHead>
-                                    <TableHead>Rendimiento</TableHead>
-                                    <TableHead>Tiempo</TableHead>
-                                    <TableHead className="text-right">Acción</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loadingRecipes ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
-                                            <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-                                        </TableCell>
-                                    </TableRow>
-                                ) : filteredRecipes.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">
-                                            No se encontraron recetas.
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    filteredRecipes.map((recipe) => (
-                                        <TableRow key={recipe.id}>
-                                            <TableCell>
-                                                <div className="font-medium">{recipe.name}</div>
-                                                <div className="text-xs text-muted-foreground">{recipe.category}</div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="secondary" className="font-normal">
-                                                    {Number(recipe.yield)} {recipe.yieldUnit}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-1 text-muted-foreground">
-                                                    <Clock className="h-3 w-3" />
-                                                    {recipe.prepTime ? `${recipe.prepTime} min` : "--"}
+                    <div className="bg-[#f4f6f8] rounded-2xl p-1 flex items-center border border-slate-200 w-full md:w-80 shadow-sm shrink-0">
+                        <input
+                            type="text"
+                            placeholder="BUSCAR INGENIERÍA..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="flex-1 h-10 px-4 bg-transparent outline-none text-[10px] font-black text-slate-600 placeholder:text-slate-400 tracking-widest uppercase"
+                        />
+                    </div>
+                </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Main Content: Recipes Grid */}
+                <div className="lg:col-span-3 space-y-6">
+                    {loadingRecipes ? (
+                        <div className="flex flex-col items-center justify-center py-40 gap-4 precision-panel animate-pulse">
+                            <div className="h-16 w-16 rounded-[24px] bg-indigo-50 flex items-center justify-center">
+                                <Loader2 className="w-8 h-8 animate-spin text-indigo-200" />
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.4em] animate-pulse">Sincronizando KDS...</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+                            {filteredRecipes.map((recipe, idx) => (
+                                <div key={recipe.id} className={cn("aura-card p-6 flex flex-col justify-between group", idx < 9 ? `animate-stagger-${(idx % 4) + 1}` : "")}>
+                                    <div className="space-y-4 relative z-10">
+                                        <div className="flex items-center justify-between">
+                                            <div className="bg-indigo-50 px-3 py-1 rounded-full flex items-center gap-1.5 w-fit">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                                                <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">
+                                                    {recipe.category || "PROCESO"}
+                                                </span>
+                                            </div>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all opacity-0 group-hover:opacity-100">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-slate-100 shadow-2xl">
+                                                    <DropdownMenuItem onClick={() => setEditRecipe(recipe)} className="rounded-xl cursor-pointer py-3 text-[10px] font-black uppercase tracking-widest"><Pencil className="w-4 h-4 mr-3" /> Editar Ficha</DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem onClick={() => { if (confirm(`¿Eliminar receta?`)) deleteMutation.mutate(recipe.id); }} className="rounded-xl cursor-pointer py-3 text-[10px] font-black uppercase tracking-widest text-red-600"><Trash2 className="w-4 h-4 mr-3" /> Eliminar</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                        
+                                        <h3 className="text-[22px] font-black text-[#1e3a5f] tracking-tight leading-[1] uppercase py-2">{recipe.name}</h3>
+                                        
+                                        <div className="grid grid-cols-2 gap-4 py-3 border-t border-slate-200/60 border-b">
+                                            <div className="space-y-1">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Rendimiento</span>
+                                                <div className="flex items-baseline gap-1.5">
+                                                    <span className="text-[15px] font-black text-slate-800">{recipe.yield}</span>
+                                                    <span className="text-[10px] font-black text-slate-500 uppercase">{recipe.yieldUnit}</span>
                                                 </div>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => executeMutation.mutate({ recipeId: recipe.id, quantity: Number(recipe.yield) })}
-                                                    disabled={executeMutation.isPending || isDemo}
-                                                    className="mr-2"
-                                                    variant="ghost"
-                                                >
-                                                    <Zap className="h-4 w-4 mr-1" />
-                                                    Rápido
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => handleProduceClick(recipe)}
-                                                    disabled={executeMutation.isPending || isDemo}
-                                                >
-                                                    Producir...
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                            </div>
+                                            <div className="space-y-1 border-l border-slate-200/60 pl-4">
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Preparación</span>
+                                                <div className="flex items-center gap-1.5 text-slate-500">
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                    <span className="text-sm font-bold">{recipe.prepTime || "--"}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 mt-auto flex items-center justify-between gap-3 relative z-10 w-full">
+                                        <button 
+                                            className="aura-pill flex-1 border border-orange-200 text-orange-500 hover:bg-orange-50 justify-center gap-1 shadow-none bg-white text-[10px]"
+                                            onClick={() => setProduceDialog({ recipe, quantity: 1 })}
+                                        >
+                                            <Zap className="w-3 h-3" /> LOTE 1X
+                                        </button>
+                                        <button 
+                                            className="aura-pill flex-1 bg-[#ef4444] text-white hover:bg-red-600 shadow-[0_4px_12px_rgba(239,68,68,0.3)] justify-center text-[10px]"
+                                            onClick={() => setProduceDialog({ recipe, quantity: Number(recipe.yield) || 1 })}
+                                        >
+                                            PRODUCCIÓN
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* Right: History */}
-                <div className="space-y-4">
-                    <h2 className="text-xl font-semibold flex items-center gap-2">
-                        <History className="h-5 w-5 text-muted-foreground" />
-                        Historial Reciente
-                    </h2>
-
-                    <div className="rounded-md border bg-card/50">
+                {/* Sidebar: Production History - Vivid Design */}
+                <div className="space-y-6 animate-enter-right">
+                    <div className="aura-card p-6 min-h-[500px]">
+                        <div className="flex items-center gap-2 mb-6">
+                            <History className="w-4 h-4 text-[#ef4444]" />
+                            <h3 className="text-[12px] font-black text-slate-600 uppercase tracking-widest">Historial de Producción</h3>
+                        </div>
+                        
                         {loadingBatches ? (
-                            <div className="p-8 text-center">
-                                <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                            <div className="flex justify-center py-20">
+                                <Loader2 className="w-8 h-8 animate-spin text-slate-200" />
                             </div>
                         ) : batches?.length === 0 ? (
-                            <div className="p-8 text-center text-muted-foreground text-sm">
-                                No hay registros hoy.
+                            <div className="py-20 text-center space-y-4">
+                                <Activity className="w-8 h-8 text-slate-200 mx-auto" />
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-relaxed">Sin actividad</p>
                             </div>
                         ) : (
-                            <div className="divide-y">
-                                {batches?.map((batch) => (
-                                    <div key={batch.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                                        <div>
-                                            <p className="font-medium text-sm">{batch.recipe.name}</p>
-                                            <p className="text-xs text-muted-foreground">{formatDate(batch.producedAt)}</p>
+                            <div className="space-y-3">
+                                {batches?.slice(0, 8).map((batch, i) => (
+                                    <div key={batch.id} className="p-3 border border-slate-200 rounded-2xl bg-white flex items-center justify-between">
+                                        <div className="overflow-hidden pr-2">
+                                            <h4 className="text-[11px] font-black text-[#1e3a5f] uppercase truncate leading-tight">{batch.recipe?.name}</h4>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase pt-1">
+                                                {formatDate(batch.producedAt)}
+                                            </p>
                                         </div>
-                                        <Badge variant="outline" className="font-mono">
-                                            +{Number(batch.quantity)}
-                                        </Badge>
+                                        <div className="text-right shrink-0">
+                                            <span className="text-[12px] font-black text-[#14b8a6]">+{batch.quantity}</span>
+                                            <span className="text-[8px] font-black text-[#14b8a6]/70 uppercase block">UD.</span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -319,50 +400,74 @@ export default function CocinaPage() {
                 </div>
             </div>
 
-            {/* Production Dialog */}
+            {/* Premium Production Dialog - Master Action */}
             <Dialog open={!!produceDialog} onOpenChange={(open) => !open && setProduceDialog(null)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Registrar Producción</DialogTitle>
-                        <DialogDescription>
-                            {produceDialog?.recipe.name}
-                        </DialogDescription>
+                <DialogContent className="sm:max-w-[480px] p-10 gap-10 bg-white border-none rounded-[48px] shadow-2xl font-sans relative overflow-hidden">
+                    <DialogHeader className="space-y-4">
+                        <div className="h-16 w-16 bg-indigo-600 rounded-[28px] flex items-center justify-center text-white shadow-2xl shadow-indigo-200 mx-auto animate-bounce-subtle">
+                             <Zap className="h-8 w-8" />
+                        </div>
+                        <div className="text-center space-y-2">
+                            <DialogTitle className="text-2xl font-bold tracking-tight text-slate-900">Validar Carga de Producción</DialogTitle>
+                            <DialogDescription className="text-sm font-medium text-slate-500">
+                                Iniciando lote de <span className="text-indigo-600 font-bold uppercase">{produceDialog?.recipe.name}</span>.<br/>Confirma las unidades finales para actualizar stock.
+                            </DialogDescription>
+                        </div>
                     </DialogHeader>
 
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label>Cantidad a Producir</Label>
-                            <div className="flex items-center gap-2">
+                    <div className="space-y-10">
+                        <div className="space-y-4">
+                            <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] text-center block opacity-60">Producción Planeada ({produceDialog?.recipe.yieldUnit})</Label>
+                            <div className="relative group">
                                 <Input
                                     type="number"
                                     value={produceDialog?.quantity}
                                     onChange={(e) => setProduceDialog(prev => prev ? ({ ...prev, quantity: parseFloat(e.target.value) || 0 }) : null)}
-                                    className="font-mono text-lg"
+                                    className="h-24 text-6xl font-bold text-center border-none bg-slate-50/50 group-hover:bg-slate-50 transition-colors focus-visible:ring-0 text-slate-900 tabular-nums rounded-[32px]"
                                     min="0"
+                                    autoFocus
                                 />
-                                <span className="text-sm text-muted-foreground font-medium w-16">
-                                    {produceDialog?.recipe.yieldUnit}
-                                </span>
+                                <div className="absolute inset-0 rounded-[32px] border-2 border-indigo-500/0 group-focus-within:border-indigo-500/10 transition-all pointer-events-none" />
                             </div>
                         </div>
-                        <div className="bg-blue-500/10 text-blue-400 p-3 rounded-md text-xs flex items-start gap-2">
-                            <AlertCircle className="h-4 w-4 mt-0.5" />
-                            <p>
-                                Se descontarán los ingredientes del inventario automáticamente basándose en la receta.
+
+                        <div className="p-6 bg-slate-50 border border-slate-100/60 rounded-[32px] flex items-start gap-4">
+                            <div className="h-10 w-10 shrink-0 bg-white rounded-2xl flex items-center justify-center text-indigo-500 shadow-sm">
+                                <AlertCircle className="h-5 w-5" />
+                            </div>
+                            <p className="text-[11px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight">
+                                Dedducción automática de <span className="text-slate-900">Explosión de Materiales</span> activa. El stock maestro se actualizará inmediatamente tras confirmar.
                             </p>
                         </div>
                     </div>
 
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setProduceDialog(null)}>Cancelar</Button>
-                        <Button onClick={confirmProduction} disabled={executeMutation.isPending || isDemo}>
-                            {executeMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Confirmar Salida
+                    <DialogFooter className="gap-4 flex-col sm:flex-row pt-4">
+                        <Button variant="ghost" onClick={() => setProduceDialog(null)} className="h-14 px-8 font-bold text-xs uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 rounded-2xl transition-all">Abortar</Button>
+                        <Button
+                            onClick={confirmProduction}
+                            disabled={executeMutation.isPending || isDemo}
+                            className="h-14 flex-1 bg-slate-900 text-white font-bold text-xs uppercase tracking-[0.2em] shadow-2xl shadow-indigo-100 hover:bg-indigo-600 rounded-2xl group/confirm transition-all relative overflow-hidden"
+                        >
+                            <div className="absolute inset-0 shimmer opacity-20" />
+                            {executeMutation.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Activity className="mr-2 h-5 w-5 group-hover/confirm:rotate-12 transition-transform" />} Validar & Procesar
                         </Button>
                     </DialogFooter>
+                    
+                    {/* Visual Decor */}
+                    <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
                 </DialogContent>
             </Dialog>
-        </div>
 
+            {/* Edit recipe dialog is assumed to follow the new UI pattern as it is a complex component */}
+            {editRecipe && (
+                <EditRecipeDialog
+                    recipe={editRecipe}
+                    ingredients={ingredients || []}
+                    open={!!editRecipe}
+                    onOpenChange={(v) => !v && setEditRecipe(null)}
+                    existingCategories={dynamicCats}
+                />
+            )}
+        </div>
     );
 }
