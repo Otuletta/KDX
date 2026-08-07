@@ -17,27 +17,15 @@ import {
     Plus,
     Phone,
     Mail,
-    MapPin,
-    MoreHorizontal,
     Pencil,
     Trash2,
     FileText,
     Loader2,
     Search,
-    ShoppingCart,
     Clock,
     Zap,
     PenTool,
-    Building2,
     PackageSearch,
-    ChevronRight,
-    ArrowUpRight,
-    CheckCircle2,
-    Globe,
-    Layers,
-    Filter,
-    Activity,
-    User,
     ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,7 +37,6 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-    DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
     Dialog,
@@ -101,7 +88,7 @@ function CreateSupplierDialog() {
                     <Plus className="w-4 h-4" /> Nuevo Proveedor
                 </button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[480px] p-8 gap-8 surface-card border-none shadow-2xl font-sans">
+            <DialogContent className="sm:max-w-[480px] p-8 gap-8 bg-white border border-slate-200 rounded-[24px] shadow-[0_24px_80px_rgba(30,58,95,0.22)] font-sans">
                 <DialogHeader className="space-y-1">
                     <DialogTitle className="text-xl font-bold tracking-tight text-slate-900">Nuevo Proveedor</DialogTitle>
                     <DialogDescription className="text-sm font-medium text-slate-500">Alta de socio estratégico en la cadena de suministros.</DialogDescription>
@@ -222,11 +209,11 @@ function SupplierListItem({ supplier }: { supplier: Supplier }) {
                                 <FileText className="h-3 w-3" />
                             </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 p-2 rounded-[20px] shadow-2xl border-none">
-                            <DropdownMenuItem onClick={() => setHistoryOpen(true)} className="text-[10px] font-black uppercase tracking-widest py-3 rounded-xl"><FileText className="w-4 h-4 mr-3" /> Historial</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setEditOpen(true)} className="text-[10px] font-black uppercase tracking-widest py-3 rounded-xl"><Pencil className="w-4 h-4 mr-3" /> Editar</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => { if(confirm("¿Eliminar?")) deleteMutation.mutate(supplier.id); }} className="text-[10px] font-black uppercase tracking-widest py-3 rounded-xl text-red-600"><Trash2 className="w-4 h-4 mr-3" /> Eliminar</DropdownMenuItem>
+                        <DropdownMenuContent align="end" className="z-[80] w-48 rounded-[20px] border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.2)]">
+                            <DropdownMenuItem onClick={() => setHistoryOpen(true)} className="text-[10px] font-black uppercase tracking-widest py-3 rounded-xl focus:bg-slate-50 focus:text-[#1e3a5f]"><FileText className="w-4 h-4 mr-3" /> Historial</DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-slate-100" />
+                            <DropdownMenuItem onClick={() => setEditOpen(true)} className="text-[10px] font-black uppercase tracking-widest py-3 rounded-xl focus:bg-slate-50 focus:text-[#1e3a5f]"><Pencil className="w-4 h-4 mr-3" /> Editar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { if(confirm("¿Eliminar?")) deleteMutation.mutate(supplier.id); }} className="text-[10px] font-black uppercase tracking-widest py-3 rounded-xl text-red-600 focus:bg-red-50 focus:text-red-600"><Trash2 className="w-4 h-4 mr-3" /> Eliminar</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -234,6 +221,7 @@ function SupplierListItem({ supplier }: { supplier: Supplier }) {
 
             {/* Dialogs placeholders */}
             <OrdersHistoryDialog supplier={supplier} open={historyOpen} onOpenChange={setHistoryOpen} />
+            <EditSupplierDialog supplier={supplier} open={editOpen} onOpenChange={setEditOpen} />
             <CreateOrderWizard supplier={supplier} open={createOrderOpen} onOpenChange={setCreateOrderOpen} />
         </>
     );
@@ -245,7 +233,7 @@ function OrdersHistoryDialog({ supplier, open, onOpenChange }: { supplier: Suppl
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[560px] p-0 surface-card border-none shadow-2xl overflow-hidden font-sans">
+            <DialogContent className="sm:max-w-[560px] p-0 bg-white border border-slate-200 rounded-[24px] shadow-[0_24px_80px_rgba(30,58,95,0.22)] overflow-hidden font-sans">
                 <div className="p-8 space-y-6">
                 <DialogHeader className="space-y-1">
                     <DialogTitle className="text-xl font-bold tracking-tight text-slate-900">Historial Comercial</DialogTitle>
@@ -318,20 +306,28 @@ function CreateOrderWizard({ supplier, open, onOpenChange }: { supplier: Supplie
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[450px] p-8 gap-8 surface-card border-none shadow-2xl font-sans text-center">
+                <DialogContent className="sm:max-w-[450px] p-8 gap-8 bg-white border border-slate-200 rounded-[24px] shadow-[0_24px_80px_rgba(30,58,95,0.22)] font-sans text-center">
                     <DialogHeader className="space-y-1">
                         <DialogTitle className="text-xl font-bold tracking-tight text-slate-900">Protocolo de Compra</DialogTitle>
                         <DialogDescription className="text-sm font-medium text-slate-500">Ejecutar orden de abastecimiento para <span className="text-slate-900 font-bold">{supplier.name}</span>.</DialogDescription>
                     </DialogHeader>
 
-                    <RadioGroup value={orderType} onValueChange={(val: any) => setOrderType(val)} className="grid grid-cols-1 gap-2 pt-2">
+                    <RadioGroup value={orderType} onValueChange={(val: "REPEAT" | "SMART" | "MANUAL") => setOrderType(val)} className="grid grid-cols-1 gap-2 pt-2">
                         {options.map((opt) => {
                              const Icon = opt.icon;
                              const isActive = orderType === opt.value;
                              return (
-                                <button
+                                <div
                                     key={opt.value}
+                                    role="button"
+                                    tabIndex={0}
                                     onClick={() => setOrderType(opt.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            setOrderType(opt.value);
+                                        }
+                                    }}
                                     className={cn(
                                         "flex items-center gap-4 p-4 rounded-xl border text-left transition-all",
                                         isActive ? "bg-slate-900 border-slate-900 text-white shadow-md" : "bg-white border-slate-100 text-slate-600 hover:border-slate-300"
@@ -345,7 +341,7 @@ function CreateOrderWizard({ supplier, open, onOpenChange }: { supplier: Supplie
                                         <p className={cn("text-[10px] font-medium leading-normal", isActive ? "text-slate-300" : "text-slate-400")}>{opt.desc}</p>
                                     </div>
                                     <RadioGroupItem value={opt.value} className="sr-only" />
-                                </button>
+                                </div>
                              );
                         })}
                     </RadioGroup>
@@ -367,7 +363,7 @@ function CreateOrderWizard({ supplier, open, onOpenChange }: { supplier: Supplie
 // Final Page
 export default function ProveedoresPage() {
     const [search, setSearch] = useState("");
-    const { data: suppliers, isLoading, error } = useSuppliers({ search });
+    const { data: suppliers, isLoading } = useSuppliers({ search });
 
     const stats = useMemo(() => {
         if (!suppliers) return { total: 0, items: 0, active: 0 };
@@ -472,7 +468,7 @@ function EditSupplierDialog({ supplier, open, onOpenChange }: { supplier: Suppli
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-             <DialogContent className="sm:max-w-[480px] p-8 gap-8 surface-card border-none shadow-2xl font-sans">
+             <DialogContent className="sm:max-w-[480px] p-8 gap-8 bg-white border border-slate-200 rounded-[24px] shadow-[0_24px_80px_rgba(30,58,95,0.22)] font-sans">
                 <DialogHeader className="space-y-1">
                     <DialogTitle className="text-xl font-bold tracking-tight text-slate-900">Editar Proveedor</DialogTitle>
                     <DialogDescription className="text-sm font-medium text-slate-500">Actualizar información de contacto.</DialogDescription>
@@ -507,4 +503,3 @@ function EditSupplierDialog({ supplier, open, onOpenChange }: { supplier: Suppli
         </Dialog>
     );
 }
-

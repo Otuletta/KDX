@@ -84,12 +84,18 @@ interface Expense {
     notes?: string;
 }
 
+interface SalesDataPoint {
+    day: string;
+    ventas: number;
+    costos: number;
+}
+
 export default function FinanzasPage() {
     // Financial summary data
-    const [salesData, setSalesData] = useState<any[]>([]);
+    const [salesData, setSalesData] = useState<SalesDataPoint[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loadingResumen, setLoadingResumen] = useState(true);
-    const [loadingExpenses, setLoadingExpenses] = useState(true);
+    const [, setLoadingExpenses] = useState(true);
     const [activeTab, setActiveTab] = useState("resumen");
 
     // Sales history

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { PurchaseOrderItem } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
                 );
             }
 
-            itemsToCreate = lastOrder.items.map((item: any) => ({
+            itemsToCreate = lastOrder.items.map((item: PurchaseOrderItem) => ({
                 ingredientId: item.ingredientId,
                 quantity: Number(item.quantity),
                 estimatedCost: Number(item.estimatedCost),

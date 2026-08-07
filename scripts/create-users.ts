@@ -26,7 +26,7 @@ async function main() {
         });
     }
 
-    const admin = await prisma.user.create({
+    await prisma.user.create({
         data: {
             name: 'Otuletta',
             email: 'otuletta@salsealo.com',
@@ -36,7 +36,7 @@ async function main() {
         },
     });
 
-    const owner1 = await prisma.user.create({
+    await prisma.user.create({
         data: {
             name: 'Mtuletta',
             email: 'mtuletta@salsealo.com',
@@ -46,7 +46,7 @@ async function main() {
         },
     });
 
-    const owner2 = await prisma.user.create({
+    await prisma.user.create({
         data: {
             name: 'Nathaly',
             email: 'nathaly@salsealo.com',

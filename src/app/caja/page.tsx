@@ -3,21 +3,16 @@
 import "./pos-custom.css";
 import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import {
     ShoppingCart,
-    Search,
     Plus,
     Minus,
-    Trash2,
-    ArrowUpRight,
     CreditCard,
     Banknote,
     QrCode,
     Loader2,
     ShoppingBag,
     X,
-    User,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 import { useProducts, Product } from "@/hooks/use-products";
-import { useSales, useCreateSale, useCashRegister } from "@/hooks/use-sales";
+import { useCreateSale, useCashRegister } from "@/hooks/use-sales";
 import { useDemo } from "@/hooks/use-demo";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -248,7 +243,7 @@ export default function CajaPage() {
                             </div>
                         ) : (
                             <div className="p-4 space-y-2">
-                                {cart.map((item, idx) => (
+                                {cart.map((item) => (
                                     <div key={item.productId} className="flex flex-col gap-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
                                         <div className="flex justify-between items-start">
                                             <h4 className="text-[11px] font-black text-[#1e3a5f] uppercase leading-tight pr-4">{item.productName}</h4>

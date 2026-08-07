@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import {
     useIngredients,
     useCreateIngredient,
+    useUpdateIngredient,
     useDeleteIngredient,
     useStockMovement,
     useIngredientMovements,
@@ -17,7 +18,6 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { formatCurrency } from "@/lib/calculations";
 import {
     Plus,
-    Search,
     MoreHorizontal,
     Trash2,
     Loader2,
@@ -72,6 +72,8 @@ const UNITS = [
     { value: "oz", label: "Onzas (oz)" },
     { value: "g", label: "Gramos (g)" },
 ];
+
+type InventoryItem = Ingredient | Product;
 
 function StockLevelBar({ current, min, status }: { current: number, min: number, status: string }) {
     const maxScale = min > 0 ? min * 3 : 15;
@@ -181,6 +183,162 @@ function CreateIngredientDialog({ open, onOpenChange, existingCategories }: { op
                         <Button variant="ghost" type="button" onClick={() => onOpenChange(false)} className="h-12 px-6 font-black text-[10px] uppercase tracking-widest text-slate-500 rounded-xl">Cancelar</Button>
                         <Button type="submit" disabled={createMutation.isPending} className="h-12 flex-1 bg-[#0f172a] text-white font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 rounded-xl">
                             {createMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />} Registrar Insumo
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function EditInventoryItemDialog({
+    item,
+    isIngredient,
+    open,
+    onOpenChange,
+    existingCategories,
+}: {
+    item: InventoryItem;
+    isIngredient: boolean;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    existingCategories: string[];
+}) {
+    const ingredient = isIngredient ? item as Ingredient : null;
+    const product = !isIngredient ? item as Product : null;
+    const updateIngredient = useUpdateIngredient();
+    const updateProduct = useUpdateProduct();
+    const [isNewCategory, setIsNewCategory] = useState(false);
+    const [formData, setFormData] = useState({
+        name: item.name || "",
+        unit: ingredient?.unit || "unidad",
+        currentStock: String(item.currentStock ?? 0),
+        minStock: ingredient ? String(ingredient.minStock ?? 0) : "0",
+        avgCost: ingredient ? String(ingredient.avgCost ?? 0) : "0",
+        sellingPrice: product ? String(product.sellingPrice ?? 0) : "0",
+        category: item.category || "",
+        sku: product?.sku || "",
+    });
+
+    const isLoading = updateIngredient.isPending || updateProduct.isPending;
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isIngredient) {
+            await updateIngredient.mutateAsync({
+                id: item.id,
+                data: {
+                    name: formData.name,
+                    unit: formData.unit,
+                    currentStock: parseFloat(formData.currentStock) || 0,
+                    minStock: parseFloat(formData.minStock) || 0,
+                    avgCost: parseFloat(formData.avgCost) || 0,
+                    category: formData.category || undefined,
+                },
+            });
+        } else {
+            await updateProduct.mutateAsync({
+                id: item.id,
+                data: {
+                    name: formData.name,
+                    currentStock: parseFloat(formData.currentStock) || 0,
+                    sellingPrice: parseFloat(formData.sellingPrice) || 0,
+                    category: formData.category || undefined,
+                    sku: formData.sku || undefined,
+                },
+            });
+        }
+        onOpenChange(false);
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto p-8 gap-8 bg-white border border-slate-200 rounded-[32px] shadow-2xl">
+                <DialogHeader className="space-y-1">
+                    <DialogTitle className="text-2xl font-black tracking-tight text-[#1e3a5f]">
+                        {isIngredient ? "EDITAR INSUMO" : "EDITAR PRODUCTO"}
+                    </DialogTitle>
+                    <DialogDescription className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                        Actualizar ficha de inventario.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nombre</Label>
+                        <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className="h-12 rounded-xl border border-slate-200 bg-slate-50 font-black text-[#1e3a5f]" />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Categoria</Label>
+                            {isNewCategory ? (
+                                <div className="flex gap-2">
+                                    <Input value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required placeholder="Nueva..." className="h-12 rounded-xl border border-slate-200 font-black text-[#1e3a5f] flex-1" autoFocus />
+                                    <Button type="button" variant="outline" size="icon" onClick={() => setIsNewCategory(false)} className="h-12 w-12 rounded-xl border-slate-200">x</Button>
+                                </div>
+                            ) : (
+                                <Select value={formData.category} onValueChange={(v) => v === "NEW" ? setIsNewCategory(true) : setFormData({ ...formData, category: v })}>
+                                    <SelectTrigger className="h-12 rounded-xl border border-slate-200 text-[#1e3a5f] font-black">
+                                        <SelectValue placeholder="Seleccionar..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="z-[90] rounded-xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.18)]">
+                                        {existingCategories.map(c => <SelectItem key={c} value={c} className="rounded-lg font-bold text-xs focus:bg-slate-100 focus:text-[#1e3a5f]">{c}</SelectItem>)}
+                                        {existingCategories.length > 0 && <SelectSeparator className="bg-slate-100" />}
+                                        <SelectItem value="NEW" className="rounded-lg text-indigo-600 font-bold text-xs focus:bg-indigo-50 focus:text-indigo-600">+ Crear Nueva</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        </div>
+
+                        {isIngredient ? (
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unidad</Label>
+                                <Select value={formData.unit} onValueChange={(v) => setFormData({ ...formData, unit: v })}>
+                                    <SelectTrigger className="h-12 rounded-xl border border-slate-200 text-[#1e3a5f] font-black">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="z-[90] rounded-xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.18)]">
+                                        {UNITS.map(u => <SelectItem key={u.value} value={u.value} className="rounded-lg font-bold text-xs focus:bg-slate-100 focus:text-[#1e3a5f]">{u.label}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">SKU</Label>
+                                <Input value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value.toUpperCase() })} placeholder="AUTO" className="h-12 rounded-xl border border-slate-200 font-black uppercase text-[#1e3a5f]" />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className={cn("grid gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100", isIngredient ? "grid-cols-3" : "grid-cols-2")}>
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center block">Stock</Label>
+                            <Input type="number" step="0.01" value={formData.currentStock} onChange={(e) => setFormData({ ...formData, currentStock: e.target.value })} className="h-10 rounded-lg border border-slate-200 text-center font-black" />
+                        </div>
+                        {isIngredient ? (
+                            <>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center block">Minimo</Label>
+                                    <Input type="number" step="0.01" value={formData.minStock} onChange={(e) => setFormData({ ...formData, minStock: e.target.value })} className="h-10 rounded-lg border border-slate-200 text-center font-black" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center block">Costo</Label>
+                                    <Input type="number" step="0.01" value={formData.avgCost} onChange={(e) => setFormData({ ...formData, avgCost: e.target.value })} className="h-10 rounded-lg border border-slate-200 text-center font-black text-emerald-600" />
+                                </div>
+                            </>
+                        ) : (
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center block">Precio</Label>
+                                <Input type="number" step="0.01" value={formData.sellingPrice} onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })} className="h-10 rounded-lg border border-emerald-200 text-center font-black text-emerald-600" />
+                            </div>
+                        )}
+                    </div>
+
+                    <DialogFooter className="gap-3">
+                        <Button variant="ghost" type="button" onClick={() => onOpenChange(false)} className="h-12 px-6 font-black text-[10px] uppercase tracking-widest text-slate-500 rounded-xl">Cancelar</Button>
+                        <Button type="submit" disabled={isLoading} className="h-12 flex-1 bg-[#0f172a] text-white font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 rounded-xl">
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Pencil className="mr-2 h-4 w-4" />} Guardar Cambios
                         </Button>
                     </DialogFooter>
                 </form>
@@ -357,20 +515,24 @@ function InventarioListItem({
     isIngredient,
     onAdjust,
     onHistory,
+    onEdit,
     onDelete
 }: {
-    item: any;
+    item: InventoryItem;
     isIngredient: boolean;
-    onAdjust?: (item: any) => void;
-    onHistory?: (item: any) => void;
-    onDelete?: (item: any) => void;
+    onAdjust?: (item: InventoryItem) => void;
+    onHistory?: (item: InventoryItem) => void;
+    onEdit?: (item: InventoryItem) => void;
+    onDelete?: (item: InventoryItem) => void;
 }) {
+    const ingredient = isIngredient ? item as Ingredient : null;
+    const product = !isIngredient ? item as Product : null;
     const status = isIngredient
-        ? getStockStatus(Number(item.currentStock), Number(item.minStock))
+        ? getStockStatus(Number(item.currentStock), Number(ingredient?.minStock))
         : (Number(item.currentStock) <= 0 ? "critical" : Number(item.currentStock) <= 5 ? "low" : "ok");
 
     const categoryText = item.category || (isIngredient ? "GENERAL" : "VENTA");
-    const formattedCost = formatCurrency(Number(isIngredient ? item.avgCost : item.sellingPrice));
+    const formattedCost = formatCurrency(Number(isIngredient ? ingredient?.avgCost : product?.sellingPrice));
 
     return (
         <div className="group flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 bg-white border border-slate-200 rounded-[24px] hover:shadow-lg transition-all mb-4">
@@ -391,9 +553,9 @@ function InventarioListItem({
                     <span className={cn("font-black text-[22px] tracking-tighter", status === "critical" ? "text-red-500" : status === "low" ? "text-amber-500" : "text-[#1e3a5f]")}>
                         {Number(item.currentStock).toFixed(2)}
                     </span>
-                    <span className="text-[12px] font-black text-slate-400 uppercase">{isIngredient ? item.unit : "und"}</span>
+                    <span className="text-[12px] font-black text-slate-400 uppercase">{isIngredient ? ingredient?.unit : "und"}</span>
                 </div>
-                <StockLevelBar current={Number(item.currentStock)} min={isIngredient ? Number(item.minStock) : 5} status={status} />
+                <StockLevelBar current={Number(item.currentStock)} min={isIngredient ? Number(ingredient?.minStock) : 5} status={status} />
             </div>
 
             {/* Price/Cost, Actions Wrapper */}
@@ -424,7 +586,7 @@ function InventarioListItem({
                             <DropdownMenuItem onClick={() => onAdjust && onAdjust(item)} className="lg:hidden rounded-xl cursor-pointer py-3 px-3 text-[11px] font-bold text-[#1e3a5f] focus:bg-slate-50 transition-colors uppercase tracking-wider">
                                 <Activity className="w-4 h-4 mr-3 text-emerald-500" /> Ajustar Inventario
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="rounded-xl cursor-pointer py-3 px-3 text-[11px] font-bold text-[#1e3a5f] focus:bg-slate-50 transition-colors uppercase tracking-wider">
+                            <DropdownMenuItem onClick={() => onEdit && onEdit(item)} className="rounded-xl cursor-pointer py-3 px-3 text-[11px] font-bold text-[#1e3a5f] focus:bg-slate-50 transition-colors uppercase tracking-wider">
                                 <Pencil className="w-4 h-4 mr-3 text-slate-400" /> Editar
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-slate-100 mx-2 my-1" />
@@ -449,7 +611,9 @@ export default function InventarioPage() {
     const [adjustmentItem, setAdjustmentItem] = useState<Ingredient | null>(null);
     const [productAdjustmentItem, setProductAdjustmentItem] = useState<Product | null>(null);
     const [movementsItem, setMovementsItem] = useState<Ingredient | null>(null);
-    const [viewTab, setViewTab] = useState<"ingredients" | "products">("ingredients");
+    const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+    const [editItemIsIngredient, setEditItemIsIngredient] = useState(true);
+    const [viewTab] = useState<"ingredients" | "products">("ingredients");
 
     const { data: ingredients, isLoading: loadingIng } = useIngredients({ search: debouncedSearch });
     const { data: products, isLoading: loadingProd } = useProducts({ search: debouncedSearch });
@@ -639,8 +803,12 @@ export default function InventarioPage() {
                             <InventarioListItem
                                 item={item}
                                 isIngredient={viewTab === "ingredients"}
-                                onAdjust={(i) => viewTab === "ingredients" ? setAdjustmentItem(i) : setProductAdjustmentItem(i)}
-                                onHistory={(i) => setMovementsItem(i)}
+                                onAdjust={(i) => viewTab === "ingredients" ? setAdjustmentItem(i as Ingredient) : setProductAdjustmentItem(i as Product)}
+                                onHistory={(i) => viewTab === "ingredients" && setMovementsItem(i as Ingredient)}
+                                onEdit={(i) => {
+                                    setEditItem(i);
+                                    setEditItemIsIngredient(viewTab === "ingredients");
+                                }}
                                 onDelete={(i) => {
                                     if (confirm(`¿ELIMINAR ${i.name.toUpperCase()} DEL INVENTARIO?`)) deleteMutation.mutate(i.id);
                                 }}
@@ -656,6 +824,15 @@ export default function InventarioPage() {
             )}
             {productAdjustmentItem && (
                 <ProductStockAdjustmentDialog product={productAdjustmentItem!} open={!!productAdjustmentItem} onOpenChange={(v) => !v && setProductAdjustmentItem(null)} />
+            )}
+            {editItem && (
+                <EditInventoryItemDialog
+                    item={editItem}
+                    isIngredient={editItemIsIngredient}
+                    open={!!editItem}
+                    onOpenChange={(v) => !v && setEditItem(null)}
+                    existingCategories={dynamicCats}
+                />
             )}
             {movementsItem && (
                 <StockMovementsDialog ingredient={movementsItem!} open={!!movementsItem} onOpenChange={(v) => !v && setMovementsItem(null)} />

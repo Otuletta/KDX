@@ -23,6 +23,17 @@
 # misc
 .DS_Store
 *.pem
+.agent/
+.vscode/
+presentacion/
+build*.log
+build-output*.txt
+build_output.log
+build_log.txt
+eslint*.json
+replace_colors.js
+test-api*.ts
+test-db.ts
 
 # debug
 npm-debug.log*

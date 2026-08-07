@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { AppShell } from "@/components/app-shell";
+import { useState, useMemo } from "react";
 import {
     useRecipes,
     useCreateRecipe,
@@ -9,7 +8,6 @@ import {
     useDeleteRecipe,
     calculateSuggestedPrice,
     type Recipe,
-    type RecipeIngredient,
 } from "@/hooks/use-recipes";
 import { useDemo } from "@/hooks/use-demo";
 import { useIngredients, type Ingredient } from "@/hooks/use-ingredients";
@@ -186,12 +184,12 @@ function CreateRecipeDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="gap-2" disabled={isDemo}>
+                <Button className="gap-2 rounded-full bg-white px-6 text-[#1e3a5f] shadow-sm border border-slate-200 hover:bg-slate-50 font-black uppercase tracking-widest text-[11px]" disabled={isDemo}>
                     <Plus className="h-4 w-4" />
                     Nueva Receta
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px]">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px] bg-white border border-slate-200 rounded-[24px] shadow-[0_24px_80px_rgba(30,58,95,0.22)]">
                 {/* Form content repeated logic from previous file but wrapped here */}
                 <DialogHeader>
                     <DialogTitle>Crear Nueva Receta</DialogTitle>
@@ -246,7 +244,7 @@ function CreateRecipeDialog({
                                     <SelectTrigger className="flex-1">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="z-[90] rounded-xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.18)]">
                                         <SelectItem value="unidad">unidades</SelectItem>
                                         <SelectItem value="porción">porciones</SelectItem>
                                         <SelectItem value="kg">kg</SelectItem>
@@ -280,7 +278,7 @@ function CreateRecipeDialog({
                                 <SelectTrigger>
                                     <SelectValue placeholder="Seleccionar categoría" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="z-[90] rounded-xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.18)]">
                                     <SelectItem value="Platos Principales">
                                         Platos Principales
                                     </SelectItem>
@@ -305,7 +303,7 @@ function CreateRecipeDialog({
                                 <SelectTrigger className="flex-1">
                                     <SelectValue placeholder="Seleccionar ingrediente" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="z-[90] rounded-xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.18)]">
                                     {availableIngredients?.map((ing) => (
                                         <SelectItem key={ing.id} value={ing.id}>
                                             {ing.name} ({ing.unit}) -{" "}
@@ -359,7 +357,7 @@ function CreateRecipeDialog({
                                         </div>
                                     ))}
                                 </div>
-                                <div className="border-t bg-muted/50 p-3">
+                                <div className="border-t bg-slate-50 p-3">
                                     <div className="flex justify-between font-semibold">
                                         <span>Costo Total de Materiales</span>
                                         <span className="font-mono">{formatCurrency(totalCost)}</span>
@@ -375,12 +373,12 @@ function CreateRecipeDialog({
 
                     {/* Profit Slider */}
                     {recipeIngredients.length > 0 && (
-                        <div className="space-y-4 rounded-lg bg-gradient-to-r from-primary/5 to-orange-500/5 p-4">
+                        <div className="space-y-4 rounded-lg bg-slate-50 border border-slate-200 p-4">
                             <div className="flex items-center justify-between">
                                 <Label className="text-base font-semibold">
                                     Margen de Ganancia
                                 </Label>
-                                <span className="font-mono text-2xl font-bold text-primary">
+                                <span className="font-mono text-3xl font-black text-[#1e3a5f] text-[#1e3a5f]">
                                     {formData.targetMargin}%
                                 </span>
                             </div>
@@ -397,19 +395,19 @@ function CreateRecipeDialog({
                             />
 
                             <div className="grid grid-cols-3 gap-4 pt-2">
-                                <div className="rounded-lg bg-background p-3 text-center">
-                                    <p className="text-xs text-muted-foreground">Costo/Unidad</p>
+                                <div className="rounded-lg bg-white border border-slate-200 p-3 text-center">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Costo/Unidad</p>
                                     <p className="font-mono font-semibold">
                                         {formatCurrency(costPerUnit)}
                                     </p>
                                 </div>
-                                <div className="rounded-lg bg-primary/10 p-3 text-center">
-                                    <p className="text-xs text-primary">Precio Sugerido</p>
-                                    <p className="font-mono text-xl font-bold text-primary">
+                                <div className="rounded-lg bg-white border border-primary/20 p-3 text-center">
+                                    <p className="text-xs text-[#1e3a5f]">Precio Sugerido</p>
+                                    <p className="font-mono text-xl font-bold text-[#1e3a5f]">
                                         {formatCurrency(suggestedPrice)}
                                     </p>
                                 </div>
-                                <div className="rounded-lg bg-green-500/10 p-3 text-center">
+                                <div className="rounded-lg bg-white border border-green-200 p-3 text-center">
                                     <p className="text-xs text-green-600">Ganancia/Unidad</p>
                                     <p className="font-mono font-semibold text-green-600">
                                         +{formatCurrency(profit)}
@@ -498,29 +496,6 @@ function EditRecipeDialog({
 
     const updateMutation = useUpdateRecipe();
 
-    // Reset/Sync when recipe changes (important for re-opening dialog with fresh data if needed, but mainly init is enough)
-    useEffect(() => {
-        if (open) {
-            setFormData({
-                name: recipe.name,
-                description: recipe.description || "",
-                yield: recipe.yield.toString(),
-                yieldUnit: recipe.yieldUnit,
-                targetMargin: Number(recipe.targetMargin),
-                category: recipe.category || "",
-                prepTime: recipe.prepTime?.toString() || "",
-                instructions: recipe.instructions || "",
-            });
-            setRecipeIngredients(recipe.ingredients.map((ri) => ({
-                ingredientId: ri.ingredientId,
-                ingredientName: ri.ingredient.name,
-                quantity: Number(ri.quantity),
-                unit: ri.unit,
-                avgCost: Number(ri.ingredient.avgCost),
-            })));
-        }
-    }, [open, recipe]);
-
     const totalCost = useMemo(() => {
         return recipeIngredients.reduce(
             (sum, ing) => sum + ing.quantity * ing.avgCost,
@@ -537,8 +512,6 @@ function EditRecipeDialog({
         costPerUnit,
         formData.targetMargin
     );
-
-    const profit = suggestedPrice - costPerUnit;
 
     const handleAddIngredient = () => {
         if (!selectedIngredient || !ingredientQty) return;
@@ -595,7 +568,7 @@ function EditRecipeDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px]">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px] bg-white border border-slate-200 rounded-[24px] shadow-[0_24px_80px_rgba(30,58,95,0.22)]">
                 <DialogHeader>
                     <DialogTitle>Editar Receta</DialogTitle>
                 </DialogHeader>
@@ -634,7 +607,7 @@ function EditRecipeDialog({
                                     <SelectTrigger className="flex-1">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="z-[90] rounded-xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.18)]">
                                         <SelectItem value="unidad">unidades</SelectItem>
                                         <SelectItem value="porción">porciones</SelectItem>
                                         <SelectItem value="kg">kg</SelectItem>
@@ -665,7 +638,7 @@ function EditRecipeDialog({
                                 <SelectTrigger>
                                     <SelectValue placeholder="Seleccionar categoría" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="z-[90] rounded-xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.18)]">
                                     <SelectItem value="Platos Principales">Platos Principales</SelectItem>
                                     <SelectItem value="Entradas">Entradas</SelectItem>
                                     <SelectItem value="Postres">Postres</SelectItem>
@@ -687,7 +660,7 @@ function EditRecipeDialog({
                                 <SelectTrigger className="flex-1">
                                     <SelectValue placeholder="Agregar ingrediente..." />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="z-[90] rounded-xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.18)]">
                                     {availableIngredients?.map((ing) => (
                                         <SelectItem key={ing.id} value={ing.id}>
                                             {ing.name} ({ing.unit})
@@ -729,10 +702,10 @@ function EditRecipeDialog({
                         )}
                     </div>
 
-                    <div className="space-y-4 rounded-lg bg-secondary/10 p-4">
+                    <div className="space-y-4 rounded-lg bg-slate-50 border border-slate-200 p-4">
                         <div className="flex items-center justify-between">
                             <Label>Margen Objetivo</Label>
-                            <span className="font-bold text-primary">{formData.targetMargin}%</span>
+                            <span className="font-bold text-[#1e3a5f]">{formData.targetMargin}%</span>
                         </div>
                         <Slider
                             value={[formData.targetMargin]}
@@ -787,13 +760,14 @@ function RecipeCard({
     const { isDemo } = useDemo();
 
     return (
-        <Card className="group overflow-hidden transition-all hover:border-primary/50">
-            <CardHeader className="pb-2">
+        <Card className="group relative overflow-hidden rounded-[28px] bg-white border border-slate-100 shadow-[0_8px_28px_rgba(30,58,95,0.06)] transition-all hover:-translate-y-1 hover:border-teal-100 hover:shadow-[0_18px_44px_rgba(30,58,95,0.12)]">
+            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-indigo-500 via-teal-400 to-amber-400" />
+            <CardHeader className="pb-3 pt-7">
                 <div className="flex items-start justify-between">
-                    <div>
-                        <CardTitle className="text-lg">{recipe.name}</CardTitle>
+                    <div className="space-y-2">
+                        <CardTitle className="text-[20px] leading-tight text-[#1e3a5f]">{recipe.name}</CardTitle>
                         {recipe.category && (
-                            <Badge variant="secondary" className="mt-1">
+                            <Badge variant="secondary" className="rounded-full bg-indigo-50 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-indigo-500">
                                 {recipe.category}
                             </Badge>
                         )}
@@ -803,18 +777,18 @@ function RecipeCard({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="opacity-0 group-hover:opacity-100"
+                                className="h-9 w-9 rounded-full text-slate-400 opacity-0 group-hover:opacity-100 hover:bg-slate-50 hover:text-[#1e3a5f]"
                                 disabled={isDemo}
                             >
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={onEdit}>
+                        <DropdownMenuContent align="end" className="z-[80] rounded-2xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.2)]">
+                            <DropdownMenuItem onClick={onEdit} className="rounded-xl py-3 text-[10px] font-black uppercase tracking-widest focus:bg-slate-50 focus:text-[#1e3a5f]">
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onClick={onDelete}>
+                            <DropdownMenuItem className="rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-red-600 focus:bg-red-50 focus:text-red-600" onClick={onDelete}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Eliminar
                             </DropdownMenuItem>
@@ -822,17 +796,17 @@ function RecipeCard({
                     </DropdownMenu>
                 </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5 p-6 pt-0">
                 {/* Recipe Info */}
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                    <div className="flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 font-bold">
                         <Package className="h-4 w-4" />
                         <span>
                             Rinde: {Number(recipe.yield)} {recipe.yieldUnit}
                         </span>
                     </div>
                     {recipe.prepTime && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 font-bold">
                             <Clock className="h-4 w-4" />
                             <span>{recipe.prepTime} min</span>
                         </div>
@@ -840,14 +814,14 @@ function RecipeCard({
                 </div>
 
                 {/* Ingredient Count */}
-                <div className="text-sm text-muted-foreground">
+                <div className="text-[11px] font-black uppercase tracking-widest text-slate-400">
                     {recipe.ingredients?.length || 0} ingredientes
                 </div>
 
                 {/* Cost Breakdown */}
-                <div className="space-y-3 rounded-lg bg-muted/50 p-4">
+                <div className="space-y-4 rounded-[22px] bg-slate-50 border border-slate-100 p-5">
                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Costo por unidad</span>
+                        <span className="font-bold text-slate-500">Costo por unidad</span>
                         <span className="font-mono font-semibold">
                             {formatCurrency(cost)}
                         </span>
@@ -856,10 +830,10 @@ function RecipeCard({
                     {/* Profit Slider */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">
+                            <span className="text-sm font-bold text-slate-500">
                                 Margen de ganancia
                             </span>
-                            <span className="font-mono text-lg font-bold text-primary">
+                            <span className="font-mono text-lg font-black text-[#1e3a5f]">
                                 {margin.toFixed(0)}%
                             </span>
                         </div>
@@ -869,9 +843,9 @@ function RecipeCard({
                             min={10}
                             max={80}
                             step={1}
-                            className="py-2"
+                            className="py-3 [&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:bg-slate-200 [&_[data-slot=slider-range]]:bg-[#1e3a5f] [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-[#1e3a5f] [&_[data-slot=slider-thumb]]:shadow-md"
                         />
-                        <div className="flex justify-between text-xs text-muted-foreground">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
                             <span>10%</span>
                             <span>80%</span>
                         </div>
@@ -881,15 +855,15 @@ function RecipeCard({
 
                     {/* Suggested Price */}
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Precio sugerido</span>
-                        <span className="font-mono text-xl font-bold text-primary">
+                        <span className="font-bold text-slate-500">Precio sugerido</span>
+                        <span className="font-mono text-xl font-black text-[#1e3a5f]">
                             {formatCurrency(suggestedPrice)}
                         </span>
                     </div>
 
                     <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Ganancia por unidad</span>
-                        <span className="font-mono font-semibold text-green-500">
+                        <span className="font-bold text-slate-500">Ganancia por unidad</span>
+                        <span className="font-mono font-black text-teal-600">
                             +{formatCurrency(profit)}
                         </span>
                     </div>
@@ -897,7 +871,7 @@ function RecipeCard({
 
                 {/* Production Count */}
                 {recipe._count && recipe._count.productionBatches > 0 && (
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-[11px] font-bold text-slate-400">
                         {recipe._count.productionBatches} lotes producidos
                     </div>
                 )}
@@ -935,14 +909,19 @@ export default function LaboratorioPage() {
 
     return (
 
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-8 max-w-7xl mx-auto animate-enter pb-12">
             {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative overflow-hidden rounded-[28px] border border-slate-100 bg-white p-8 shadow-[0_8px_28px_rgba(30,58,95,0.06)] flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-indigo-500 via-teal-400 to-amber-400" />
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+                    <div className="mb-3 flex w-fit items-center gap-2 rounded-full bg-indigo-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-indigo-500">
+                        <FlaskConical className="h-4 w-4" />
+                        Ingenieria Gastronomica
+                    </div>
+                    <h1 className="text-[34px] font-black tracking-tight text-[#1e3a5f] md:text-[42px]">
                         Laboratorio
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="mt-1 text-sm font-bold text-slate-400">
                         Construye recetas y optimiza tus márgenes de ganancia
                     </p>
                 </div>
@@ -950,43 +929,46 @@ export default function LaboratorioPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid gap-4 sm:grid-cols-3">
-                <Card className="glass">
-                    <CardContent className="flex items-center gap-4 p-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                            <FlaskConical className="h-6 w-6 text-primary" />
+            <div className="grid gap-5 sm:grid-cols-3">
+                <Card className="relative overflow-hidden rounded-[26px] bg-white border border-slate-100 shadow-[0_8px_24px_rgba(30,58,95,0.05)]">
+                    <div className="absolute inset-x-0 top-0 h-1 bg-[#1e3a5f]" />
+                    <CardContent className="flex items-center gap-4 p-6">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50">
+                            <FlaskConical className="h-6 w-6 text-[#1e3a5f]" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold">{stats.total}</p>
-                            <p className="text-xs text-muted-foreground">Recetas Activas</p>
+                            <p className="text-3xl font-black text-[#1e3a5f]">{stats.total}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Recetas Activas</p>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="glass">
-                    <CardContent className="flex items-center gap-4 p-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/10">
-                            <TrendingUp className="h-6 w-6 text-green-500" />
+                <Card className="relative overflow-hidden rounded-[26px] bg-white border border-slate-100 shadow-[0_8px_24px_rgba(30,58,95,0.05)]">
+                    <div className="absolute inset-x-0 top-0 h-1 bg-teal-400" />
+                    <CardContent className="flex items-center gap-4 p-6">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50">
+                            <TrendingUp className="h-6 w-6 text-teal-500" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold">
+                            <p className="text-3xl font-black text-[#1e3a5f]">
                                 {stats.avgMargin.toFixed(0)}%
                             </p>
-                            <p className="text-xs text-muted-foreground">Margen Promedio</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Margen Promedio</p>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="glass">
-                    <CardContent className="flex items-center gap-4 p-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10">
-                            <Calculator className="h-6 w-6 text-blue-500" />
+                <Card className="relative overflow-hidden rounded-[26px] bg-white border border-slate-100 shadow-[0_8px_24px_rgba(30,58,95,0.05)]">
+                    <div className="absolute inset-x-0 top-0 h-1 bg-amber-400" />
+                    <CardContent className="flex items-center gap-4 p-6">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50">
+                            <Calculator className="h-6 w-6 text-amber-500" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold">
+                            <p className="text-3xl font-black text-[#1e3a5f]">
                                 {formatCurrency(stats.avgCost)}
                             </p>
-                            <p className="text-xs text-muted-foreground">Costo Promedio</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Costo Promedio</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -994,12 +976,12 @@ export default function LaboratorioPage() {
 
             {/* Search */}
             <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                     placeholder="Buscar recetas..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10"
+                    className="h-12 rounded-2xl border-slate-200 bg-white pl-11 font-bold text-[#1e3a5f] shadow-sm placeholder:text-slate-300"
                 />
             </div>
 
@@ -1009,16 +991,16 @@ export default function LaboratorioPage() {
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
             ) : error ? (
-                <Card className="border-dashed">
+                <Card className="rounded-[28px] border-dashed bg-white">
                     <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                         <p className="text-muted-foreground">Error al cargar recetas</p>
                     </CardContent>
                 </Card>
             ) : recipes?.length === 0 ? (
-                <Card className="border-dashed border-2 border-muted-foreground/25">
+                <Card className="rounded-[28px] border-dashed border-2 border-slate-200 bg-white">
                     <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                            <FlaskConical className="h-8 w-8 text-primary" />
+                            <FlaskConical className="h-8 w-8 text-[#1e3a5f]" />
                         </div>
                         <h3 className="mb-2 text-xl font-semibold">
                             Crea tu primera receta
@@ -1032,12 +1014,16 @@ export default function LaboratorioPage() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {recipes?.map((recipe) => (
                         <RecipeCard
                             key={recipe.id}
                             recipe={recipe}
-                            onDelete={() => deleteMutation.mutate(recipe.id)}
+                            onDelete={() => {
+                                if (confirm(`¿Eliminar la receta "${recipe.name}"?`)) {
+                                    deleteMutation.mutate(recipe.id);
+                                }
+                            }}
                             onEdit={() => setEditingRecipe(recipe)}
                         />
                     ))}

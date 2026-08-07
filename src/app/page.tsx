@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  Package, ArrowUpRight,
-  TrendingUp, Zap,
+  Package,
+  TrendingUp,
   DollarSign, ShoppingBag, ChefHat, MousePointer2
 } from "lucide-react";
 import {
@@ -18,11 +18,31 @@ import { cn } from "@/lib/utils";
 
 const PIE_COLORS = ["#1e3a5f", "#ef4444", "#14b8a6", "#f59e0b", "#a855f7"];
 
+interface DashboardTrendPoint {
+  name: string;
+  val: number;
+}
+
+interface DashboardBestSeller {
+  name: string;
+  value: number;
+}
+
+interface DashboardStats {
+  trend?: DashboardTrendPoint[];
+  bestSellers?: DashboardBestSeller[];
+  weeklyTotal?: number;
+}
+
+interface ColoredBestSeller extends DashboardBestSeller {
+  color: string;
+}
+
 export default function HomePage() {
   const router = useRouter();
   const { data: sales } = useSales({ today: true });
   const { data: products } = useProducts();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
 
   useEffect(() => {
     fetch("/api/dashboard/stats").then(r => r.json()).then(setStats).catch(console.error);
@@ -32,7 +52,7 @@ export default function HomePage() {
   const lowStock = products?.filter(p => p.currentStock <= 5).length || 0;
   const totalOrders = sales?.length || 0;
   const chartData = stats?.trend || [];
-  const pieData = stats?.bestSellers?.map((item: any, i: number) => ({ ...item, color: PIE_COLORS[i % PIE_COLORS.length] })) || [];
+  const pieData: ColoredBestSeller[] = stats?.bestSellers?.map((item, i) => ({ ...item, color: PIE_COLORS[i % PIE_COLORS.length] })) || [];
   const weeklyTotal = stats?.weeklyTotal || 0;
 
   const yesterday = sales?.filter(s => {
@@ -168,17 +188,17 @@ export default function HomePage() {
               <ResponsiveContainer width="100%" height={180}>
                 <PieChart>
                   <Pie data={pieData} innerRadius={55} outerRadius={75} paddingAngle={6} dataKey="value" stroke="none" cornerRadius={10}>
-                    {pieData.map((entry: any, i: number) => <Cell key={i} fill={entry.color} />)}
+                    {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
-                <span className="text-3xl font-black text-[var(--foreground)]">{pieData.reduce((a: number, c: any) => a + c.value, 0)}</span>
+                <span className="text-3xl font-black text-[var(--foreground)]">{pieData.reduce((a, c) => a + c.value, 0)}</span>
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Vendidos</span>
               </div>
             </div>
             <div className="space-y-2">
-              {pieData.slice(0, 4).map((item: any) => (
+              {pieData.slice(0, 4).map((item) => (
                 <div key={item.name} className="flex items-center justify-between py-1 border-b border-slate-50 last:border-0">
                   <div className="flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full" style={{ background: item.color }} />

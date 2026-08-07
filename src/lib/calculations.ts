@@ -10,8 +10,8 @@ export function toNumber(value: Decimal | number | string | null | undefined): n
         const parsed = parseFloat(value);
         return isNaN(parsed) ? 0 : parsed;
     }
-    if (typeof value === "object" && typeof (value as any).toNumber === "function") {
-        return (value as any).toNumber();
+    if (typeof value === "object" && typeof value.toNumber === "function") {
+        return value.toNumber();
     }
     return 0;
 }

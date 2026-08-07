@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,7 +9,6 @@ import {
     Package,
     ChefHat,
     FlaskConical,
-    Settings,
     Menu,
     LogOut,
     Store,
@@ -21,8 +20,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { getCurrentSession } from "@/app/actions/auth";
-import { SessionPayload } from "@/lib/auth";
 import { FlameLogo } from "@/components/ui/flame-logo";
 
 const navGroups = [
@@ -31,13 +28,13 @@ const navGroups = [
         items: [
             { name: "Panel", href: "/", icon: LayoutDashboard },
             { name: "Terminal POS", href: "/caja", icon: ShoppingCart },
-            { name: "Producción", href: "/cocina", icon: ChefHat },
+            { name: "Produccion", href: "/cocina", icon: ChefHat },
         ]
     },
     {
-        title: "Gestión",
+        title: "Gestion",
         items: [
-            { name: "Catálogo", href: "/productos", icon: FileText },
+            { name: "Catalogo", href: "/productos", icon: FileText },
             { name: "Inventario", href: "/inventario", icon: Package },
             { name: "Compras", href: "/compras", icon: Wallet },
             { name: "Proveedores", href: "/proveedores", icon: Truck },
@@ -45,7 +42,7 @@ const navGroups = [
         ]
     },
     {
-        title: "Analítica",
+        title: "Analitica",
         items: [
             { name: "Finanzas", href: "/finanzas", icon: BarChart3 },
         ]
@@ -53,20 +50,15 @@ const navGroups = [
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<SessionPayload["user"] | null>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const pathname = usePathname();
-
-    useEffect(() => {
-        getCurrentSession().then((session) => { if (session?.user) setUser(session.user); });
-    }, []);
 
     if (pathname === "/login") return <>{children}</>;
 
     return (
         <div className="flex min-h-screen bg-[var(--background)] font-sans relative">
             
-            {/* ─── AURA CLASSIC FLOATING SIDEBAR ─── */}
+            {/* AURA CLASSIC FLOATING SIDEBAR */}
             <aside className="hidden md:flex aura-sidebar">
                 {/* Top Logo / Red Pill */}
                 <Link href="/" className={cn("aura-nav-item mt-2", pathname === "/" ? "aura-nav-item-red" : "")}>
@@ -110,17 +102,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <TooltipProvider delayDuration={0}>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <button className="aura-nav-item">
-                                    <Settings className="w-5 h-5" />
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" className="bg-[#1e293b] text-white border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest shadow-xl ml-4">
-                                Configuración
-                            </TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                            <TooltipTrigger asChild>
                                 <form action={async () => { const { logout } = await import("@/app/actions/auth"); await logout(); }} className="w-full flex justify-center">
                                     <button type="submit" className="aura-nav-item hover:text-red-400">
                                         <LogOut className="w-5 h-5" />
@@ -128,7 +109,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 </form>
                             </TooltipTrigger>
                             <TooltipContent side="right" className="bg-red-500 text-white border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest shadow-xl ml-4">
-                                Cerrar Sesión
+                                Cerrar Sesion
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
@@ -148,7 +129,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </Button>
             </header>
 
-            {/* ─── MAIN CONTENT AREA ─── */}
+            {/* MAIN CONTENT AREA */}
             <main className="flex-1 w-full md:pl-[120px] pt-20 md:pt-6 pb-6 px-4 md:pr-6 overflow-x-hidden min-h-screen">
                 <div className="max-w-[1600px] w-full mx-auto pb-24">
                     {children}

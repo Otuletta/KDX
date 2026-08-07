@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
 
 interface OSWindowProps {
     children: React.ReactNode;
@@ -9,13 +8,16 @@ interface OSWindowProps {
     pathname: string;
 }
 
-export function OSWindow({ children, title, pathname }: OSWindowProps) {
+export function OSWindow({ children, pathname }: OSWindowProps) {
     const [isAnimating, setIsAnimating] = useState(true);
 
     useEffect(() => {
-        setIsAnimating(true);
+        const start = window.requestAnimationFrame(() => setIsAnimating(true));
         const t = setTimeout(() => setIsAnimating(false), 20);
-        return () => clearTimeout(t);
+        return () => {
+            window.cancelAnimationFrame(start);
+            clearTimeout(t);
+        };
     }, [pathname]);
 
     return (

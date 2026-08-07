@@ -1,5 +1,5 @@
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type Ingredient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -124,7 +124,7 @@ async function main() {
         { name: 'Pimienta Negra', unit: 'kg', avgCost: 12.00, supplierId: supItalia.id, category: 'Especias' },
     ];
 
-    const ingredients: any[] = [];
+    const ingredients: Ingredient[] = [];
     for (const ing of ingredientsData) {
         const created = await prisma.ingredient.create({
             data: {
@@ -149,11 +149,19 @@ async function main() {
     }
 
     const packLasagna = await prisma.ingredient.create({ data: { name: 'Bandeja Aluminio', unit: 'und', avgCost: 0.30, category: 'Empaque', currentStock: 200, supplierId: supPack.id, tenantId: tenant.id } });
-    const packJar = await prisma.ingredient.create({ data: { name: 'Frasco Vidrio', unit: 'und', avgCost: 0.60, category: 'Empaque', currentStock: 100, supplierId: supPack.id, tenantId: tenant.id } });
+    await prisma.ingredient.create({ data: { name: 'Frasco Vidrio', unit: 'und', avgCost: 0.60, category: 'Empaque', currentStock: 100, supplierId: supPack.id, tenantId: tenant.id } });
 
     const getIng = (name: string) => ingredients.find(i => i.name === name) || ingredients[0];
 
-    const createRecipeWithCost = async (data: any, ingredientsList: { ingredientId: string, quantity: number, unit: string }[]) => {
+    type RecipeSeedData = {
+        name: string;
+        yield: number;
+        yieldUnit: string;
+        category: string;
+        targetMargin?: number;
+    };
+
+    const createRecipeWithCost = async (data: RecipeSeedData, ingredientsList: { ingredientId: string, quantity: number, unit: string }[]) => {
         let totalCost = 0;
         for (const item of ingredientsList) {
             const ing = await prisma.ingredient.findUnique({ where: { id: item.ingredientId } });

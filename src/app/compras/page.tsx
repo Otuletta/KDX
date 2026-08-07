@@ -8,23 +8,17 @@ import {
     Loader2, 
     ShoppingCart, 
     Search, 
-    ChevronDown, 
-    Calendar, 
     Package, 
-    XCircle,
     CheckCircle2,
     Truck,
     Clock,
     Plus,
-    Filter,
-    ArrowUpRight,
     TrendingUp,
     MoreHorizontal,
     FileText,
     Download,
     Ban,
     PackageSearch,
-    Activity,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -44,6 +38,7 @@ export default function ComprasPage() {
     const { isDemo } = useDemo();
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
+    const [createOpen, setCreateOpen] = useState(false);
 
     const { data: orders, isLoading } = usePurchaseOrders();
     const updateStatusMutation = useUpdatePurchaseOrderStatus();
@@ -81,7 +76,11 @@ export default function ComprasPage() {
                     <p className="text-[13px] font-bold text-slate-400">Control maestro de compras, órdenes logísticas y flujo de suministros.</p>
                 </div>
                 <div className="relative z-10">
-                    <Button className="bg-white text-[#1e3a5f] hover:bg-slate-50 border border-slate-200 shadow-sm rounded-full h-12 px-8 font-black text-xs uppercase tracking-widest transition-all hover:scale-105">
+                    <Button
+                        onClick={() => setCreateOpen(true)}
+                        disabled={isDemo}
+                        className="bg-white text-[#1e3a5f] hover:bg-slate-50 border border-slate-200 shadow-sm rounded-full h-12 px-8 font-black text-xs uppercase tracking-widest transition-all hover:scale-105"
+                    >
                         <Plus className="mr-2 h-4 w-4 text-indigo-500" /> Registrar Compra
                     </Button>
                 </div>
@@ -291,8 +290,8 @@ export default function ComprasPage() {
                                                 <MoreHorizontal className="w-4 h-4 text-slate-400" />
                                             </Button>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-slate-100 shadow-2xl">
-                                            <DropdownMenuLabel className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.2em] px-3 py-2">Operaciones</DropdownMenuLabel>
+                                        <DropdownMenuContent align="end" className="z-[80] w-56 rounded-2xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.2)]">
+                                            <DropdownMenuLabel className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] px-3 py-2">Operaciones</DropdownMenuLabel>
                                             {order.status === "DRAFT" && (
                                                 <DropdownMenuItem 
                                                     onClick={() => updateStatusMutation.mutate({ id: order.id, status: "SENT" })} 
@@ -313,7 +312,7 @@ export default function ComprasPage() {
                                                     <CheckCircle2 className="w-4 h-4 mr-2" /> Reportar Recepción
                                                 </DropdownMenuItem>
                                             )}
-                                            <DropdownMenuSeparator className="bg-slate-50 mx-1 my-1" />
+                                            <DropdownMenuSeparator className="bg-slate-100 mx-1 my-1" />
                                             <DropdownMenuItem className="rounded-xl cursor-pointer py-2.5 px-3 text-xs font-bold text-slate-600 focus:bg-slate-50 focus:text-slate-900 transition-colors">
                                                 <Download className="w-4 h-4 mr-2" /> Exportar PDF
                                             </DropdownMenuItem>
@@ -331,6 +330,8 @@ export default function ComprasPage() {
                     })
                 )}
             </div>
+
+            <ComprasDialog open={createOpen} onOpenChange={setCreateOpen} />
         </div>
     );
 }

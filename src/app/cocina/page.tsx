@@ -14,14 +14,11 @@ import {
     Loader2,
     History,
     Zap,
-    Search,
     AlertCircle,
     MoreHorizontal,
     Pencil,
     Trash2,
-    Plus,
     Activity,
-    ChevronRight,
     TrendingUp,
     ArrowUpRight,
 } from "lucide-react";
@@ -36,14 +33,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-    DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { useIngredients } from "@/hooks/use-ingredients";
 import { CreateRecipeDialog, EditRecipeDialog } from "@/components/recipe-dialogs";
@@ -127,19 +122,6 @@ export default function CocinaPage() {
     const [produceDialog, setProduceDialog] = useState<{ recipe: Recipe; quantity: number } | null>(null);
     const [editRecipe, setEditRecipe] = useState<Recipe | null>(null);
 
-    // Stats
-    const todayBatches =
-        batches?.filter((b) => {
-            const today = new Date();
-            const batchDate = new Date(b.producedAt);
-            return batchDate.toDateString() === today.toDateString();
-        }) || [];
-
-    const totalProducedToday = todayBatches.reduce(
-        (sum, b) => sum + Number(b.quantity),
-        0
-    );
-
     const filteredRecipes = recipes?.filter(r => {
         if (activeCategory !== "all" && r.category !== activeCategory) return false;
         return r.name.toLowerCase().includes(search.toLowerCase());
@@ -184,9 +166,12 @@ export default function CocinaPage() {
                      </div>
                 </div>
                 <div className="relative z-10">
-                    <Button className="bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 text-white rounded-xl h-12 px-8 font-black uppercase text-[11px] tracking-widest shadow-[0_4px_14px_0_rgba(30,58,95,0.39)] hover:shadow-[0_6px_20px_rgba(30,58,95,0.23)] hover:-translate-y-0.5 transition-all duration-200">
-                        <Plus className="mr-2 h-4 w-4" /> Nueva Ingeniería
-                    </Button>
+                    <CreateRecipeDialog
+                        ingredients={ingredients}
+                        existingCategories={dynamicCats}
+                        triggerLabel="Nueva Ingeniería"
+                        triggerClassName="inline-flex items-center justify-center gap-2 bg-[#1e3a5f] hover:bg-[#1e3a5f]/90 text-white rounded-xl h-12 px-8 font-black uppercase text-[11px] tracking-widest shadow-[0_4px_14px_0_rgba(30,58,95,0.39)] hover:shadow-[0_6px_20px_rgba(30,58,95,0.23)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
+                    />
                 </div>
             </div>
 
@@ -313,10 +298,10 @@ export default function CocinaPage() {
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-slate-100 shadow-2xl">
-                                                    <DropdownMenuItem onClick={() => setEditRecipe(recipe)} className="rounded-xl cursor-pointer py-3 text-[10px] font-black uppercase tracking-widest"><Pencil className="w-4 h-4 mr-3" /> Editar Ficha</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => { if (confirm(`¿Eliminar receta?`)) deleteMutation.mutate(recipe.id); }} className="rounded-xl cursor-pointer py-3 text-[10px] font-black uppercase tracking-widest text-red-600"><Trash2 className="w-4 h-4 mr-3" /> Eliminar</DropdownMenuItem>
+                                                <DropdownMenuContent align="end" className="z-[80] w-56 rounded-2xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.2)]">
+                                                    <DropdownMenuItem onClick={() => setEditRecipe(recipe)} className="rounded-xl cursor-pointer py-3 text-[10px] font-black uppercase tracking-widest focus:bg-slate-50 focus:text-[#1e3a5f]"><Pencil className="w-4 h-4 mr-3" /> Editar Ficha</DropdownMenuItem>
+                                                    <DropdownMenuSeparator className="bg-slate-100" />
+                                                    <DropdownMenuItem onClick={() => { if (confirm(`¿Eliminar receta?`)) deleteMutation.mutate(recipe.id); }} className="rounded-xl cursor-pointer py-3 text-[10px] font-black uppercase tracking-widest text-red-600 focus:bg-red-50 focus:text-red-600"><Trash2 className="w-4 h-4 mr-3" /> Eliminar</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
@@ -380,7 +365,7 @@ export default function CocinaPage() {
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {batches?.slice(0, 8).map((batch, i) => (
+                                {batches?.slice(0, 8).map((batch) => (
                                     <div key={batch.id} className="p-3 border border-slate-200 rounded-2xl bg-white flex items-center justify-between">
                                         <div className="overflow-hidden pr-2">
                                             <h4 className="text-[11px] font-black text-[#1e3a5f] uppercase truncate leading-tight">{batch.recipe?.name}</h4>

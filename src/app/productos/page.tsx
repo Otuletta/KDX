@@ -13,7 +13,6 @@ import { useRecipes } from "@/hooks/use-recipes";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
     Plus,
-    Search,
     ArrowUpRight,
     Trash2,
     Loader2,
@@ -177,10 +176,10 @@ function ProductDialog({
                                         <SelectTrigger className="h-12 rounded-xl border border-slate-200 text-[#1e3a5f] font-black">
                                             <SelectValue placeholder="Seleccionar..." />
                                         </SelectTrigger>
-                                        <SelectContent className="rounded-xl">
-                                            {existingCategories.map(c => <SelectItem key={c} value={c} className="font-bold text-xs">{c}</SelectItem>)}
-                                            {existingCategories.length > 0 && <SelectSeparator />}
-                                            <SelectItem value="NEW" className="text-indigo-600 font-bold text-xs">+ Crear Nueva</SelectItem>
+                                        <SelectContent className="z-[90] rounded-xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.18)]">
+                                            {existingCategories.map(c => <SelectItem key={c} value={c} className="rounded-lg font-bold text-xs focus:bg-slate-100 focus:text-[#1e3a5f]">{c}</SelectItem>)}
+                                            {existingCategories.length > 0 && <SelectSeparator className="bg-slate-100" />}
+                                            <SelectItem value="NEW" className="rounded-lg text-indigo-600 font-bold text-xs focus:bg-indigo-50 focus:text-indigo-600">+ Crear Nueva</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -207,10 +206,10 @@ function ProductDialog({
                                 <SelectTrigger className="h-12 rounded-xl border border-slate-200 text-[#1e3a5f] font-black">
                                     <SelectValue placeholder="Sin receta..." />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-xl">
-                                    <SelectItem value="none" className="font-bold text-xs">-- Sin Enlace --</SelectItem>
+                                <SelectContent className="z-[90] rounded-xl border border-slate-200 bg-white p-2 text-[#1e3a5f] shadow-[0_18px_50px_rgba(30,58,95,0.18)]">
+                                    <SelectItem value="none" className="rounded-lg font-bold text-xs focus:bg-slate-100 focus:text-[#1e3a5f]">-- Sin Enlace --</SelectItem>
                                     {recipes?.map((recipe) => (
-                                        <SelectItem key={recipe.id} value={recipe.id} className="font-bold text-xs">{recipe.name}</SelectItem>
+                                        <SelectItem key={recipe.id} value={recipe.id} className="rounded-lg font-bold text-xs focus:bg-slate-100 focus:text-[#1e3a5f]">{recipe.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

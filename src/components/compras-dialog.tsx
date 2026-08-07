@@ -161,7 +161,7 @@ export function ComprasDialog({
             const processedItems = await Promise.all(
                 items.map(async (item) => {
                     let finalIngredientId = item.ingredientId;
-                    let baseUnitCost = Number(item.cost) * Number(exchangeRate);
+                    const baseUnitCost = Number(item.cost) * Number(exchangeRate);
 
                     if (item.isNew) {
                         const newIng = await createIngredient.mutateAsync({
@@ -225,7 +225,7 @@ export function ComprasDialog({
                     </Button>
                 </DialogTrigger>
             )}
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[800px] border border-white/10 bg-black/60 backdrop-blur-xl text-white shadow-2xl rounded-[2rem] custom-scrollbar">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[800px] border border-slate-800 bg-[#0f172a] text-white shadow-2xl rounded-[2rem] custom-scrollbar">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-3 text-2xl font-black tracking-tight">
                         <ShoppingCart className="w-6 h-6 text-indigo-400" /> Nueva Compra
@@ -263,7 +263,7 @@ export function ComprasDialog({
                                 <SelectTrigger className="w-full sm:max-w-md bg-white/5 border-white/10 text-white rounded-xl h-12 focus:ring-white/30">
                                     <SelectValue placeholder="Seleccionar un proveedor..." />
                                 </SelectTrigger>
-                                <SelectContent className="bg-black/60 backdrop-blur-xl border border-white/10 text-white rounded-xl shadow-2xl">
+                                <SelectContent className="bg-[#0f172a] border border-slate-700 text-white rounded-xl shadow-2xl">
                                     {suppliers?.map((s) => (
                                         <SelectItem key={s.id} value={s.id} className="focus:bg-white/10 focus:text-white">{s.name}</SelectItem>
                                     ))}
@@ -299,7 +299,7 @@ export function ComprasDialog({
                                     <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:ring-white/30">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-black/60 backdrop-blur-xl border border-white/10 text-white rounded-xl shadow-2xl">
+                                    <SelectContent className="bg-[#0f172a] border border-slate-700 text-white rounded-xl shadow-2xl">
                                         <SelectItem value="DOP" className="focus:bg-white/10 focus:text-white">DOP (Base)</SelectItem>
                                         <SelectItem value="USD" className="focus:bg-white/10 focus:text-white">USD</SelectItem>
                                         <SelectItem value="EUR" className="focus:bg-white/10 focus:text-white">EUR</SelectItem>
@@ -337,7 +337,7 @@ export function ComprasDialog({
                         
                         {items.length === 0 ? (
                             <div className="text-center p-8 border border-white/5 border-dashed rounded-xl bg-white/5 text-white/40 font-medium font-mono text-sm">
-                                No has agreado productos. Haz clic en "Añadir Ítem".
+                                No has agreado productos. Haz clic en &quot;Añadir Ítem&quot;.
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -371,7 +371,7 @@ export function ComprasDialog({
                                                     <SelectTrigger className="bg-black/20 border-white/10 text-white rounded-xl h-11 focus:ring-white/30">
                                                         <SelectValue placeholder="Busca ingrediente existente..." />
                                                     </SelectTrigger>
-                                                    <SelectContent className="bg-black/60 backdrop-blur-xl border border-white/10 text-white rounded-xl shadow-2xl">
+                                                    <SelectContent className="bg-[#0f172a] border border-slate-700 text-white rounded-xl shadow-2xl">
                                                         {ingredients?.map((ing) => (
                                                             <SelectItem key={ing.id} value={ing.id} className="focus:bg-white/10 focus:text-white font-medium">{ing.name} <span className="text-white/40 font-mono ml-2">(Stock: {ing.currentStock} {ing.unit})</span></SelectItem>
                                                         ))}

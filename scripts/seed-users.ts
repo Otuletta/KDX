@@ -39,7 +39,6 @@ async function main() {
         const hashedPassword = await bcrypt.hash(u.password, 10);
         const email = u.email.toLowerCase();
 
-        // @ts-ignore
         const user = await prisma.user.upsert({
             where: { email },
             update: {
