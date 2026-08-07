@@ -38,6 +38,7 @@ import {
 import { useSales, Sale } from "@/hooks/use-sales";
 import { ReceiptPrinter, ReceiptData } from "@/components/finanzas/receipt-printer";
 import { InvoicePrinter, InvoiceData } from "@/components/finanzas/invoice-printer";
+import { toast } from "sonner";
 
 // Tooltip Component
 const CustomTooltip = ({
@@ -111,6 +112,7 @@ export default function FinanzasPage() {
 
     // New expense form
     const [showExpenseForm, setShowExpenseForm] = useState(false);
+    const [isSavingExpense, setIsSavingExpense] = useState(false);
     const [newExpense, setNewExpense] = useState({ category: "OTHER", description: "", amount: "", recurring: false });
 
     useEffect(() => {
@@ -239,22 +241,49 @@ export default function FinanzasPage() {
     };
 
     const handleAddExpense = async () => {
-        if (!newExpense.description || !newExpense.amount) return;
+        if (!newExpense.description.trim() || !newExpense.amount) {
+            toast.error("Completa la descripción y el monto del gasto");
+            return;
+        }
+
+        const amount = Number(newExpense.amount);
+        if (!Number.isFinite(amount) || amount <= 0) {
+            toast.error("El monto debe ser mayor a 0");
+            return;
+        }
+
+        setIsSavingExpense(true);
         try {
             const res = await fetch("/api/expenses", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newExpense),
+                body: JSON.stringify({
+                    ...newExpense,
+                    description: newExpense.description.trim(),
+                    amount,
+                }),
             });
-            if (res.ok) {
-                const created = await res.json();
-                setExpenses((prev) => [created, ...prev]);
-                setNewExpense({ category: "OTHER", description: "", amount: "", recurring: false });
-                setShowExpenseForm(false);
+
+            if (!res.ok) {
+                const error = await res.json().catch(() => null);
+                throw new Error(error?.error || "No se pudo registrar el gasto");
             }
+
+            const created = await res.json();
+            setExpenses((prev) => [created, ...prev]);
+            setNewExpense({ category: "OTHER", description: "", amount: "", recurring: false });
+            setShowExpenseForm(false);
+            toast.success("Gasto registrado exitosamente");
         } catch (err) {
-            console.error(err);
+            toast.error(err instanceof Error ? err.message : "Error al registrar gasto");
+        } finally {
+            setIsSavingExpense(false);
         }
+    };
+
+    const handleOpenExpenseForm = () => {
+        setActiveTab("gastos");
+        setShowExpenseForm(true);
     };
 
     // CSV Export
@@ -307,7 +336,7 @@ export default function FinanzasPage() {
                                     <Download className="mr-2 h-4 w-4" /> Exportar CSV
                                 </Button>
                                 <Button 
-                                    onClick={() => setShowExpenseForm(!showExpenseForm)}
+                                    onClick={handleOpenExpenseForm}
                                     className="rounded-2xl h-12 px-6 bg-[#f4f6f8] hover:bg-slate-100 text-[#1e3a5f] border-none font-black text-[10px] uppercase tracking-widest transition-all"
                                 >
                                     <Plus className="mr-2 h-4 w-4 text-slate-400" /> Nuevo Gasto
@@ -531,7 +560,13 @@ export default function FinanzasPage() {
                                 </div>
                                 <div className="flex gap-4">
                                     <Button variant="ghost" onClick={() => setShowExpenseForm(false)} className="rounded-xl px-6 h-12 font-bold uppercase tracking-widest">Cancelar</Button>
-                                    <Button onClick={handleAddExpense} className="rounded-xl px-8 h-12 bg-primary text-white font-bold uppercase tracking-widest shadow-lg shadow-primary/20">Registrar Pago</Button>
+                                    <Button
+                                        onClick={handleAddExpense}
+                                        disabled={isSavingExpense}
+                                        className="rounded-xl px-8 h-12 bg-primary text-white font-bold uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-60"
+                                    >
+                                        {isSavingExpense ? "Guardando..." : "Registrar Pago"}
+                                    </Button>
                                 </div>
                             </div>
                         </div>
